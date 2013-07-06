@@ -18,7 +18,7 @@
 
 	class APIV1Controller extends Controller
 	{
-		public static $api_version = "0.4";
+		public static $api_version = "0.5-dev";
 		
 		public function home()
 		{

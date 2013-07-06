@@ -43,6 +43,7 @@ TIMELAPSE GENERATION
 
 BONUS FEATURES
 
+* BUMBLEBEE - downloading of slice engines & other worker software tools.
 * WEB - Single unified queue view w/ auto-update
   * combine queue page into single list of all open jobs w/ tabs to limit based on job status
 * WEB - create page to show live shots from currently printing public bots or just shots from completed jobs
