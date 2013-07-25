@@ -61,6 +61,7 @@ class BumbleBee():
     data = {}
     data['bots'] = hive.scanBots()
     data['cameras'] = hive.scanCameras()
+    data['system'] = hive.scanSystem()
     
     scanData = json.dumps(data)
     if scanData != self.lastScanData:
@@ -80,7 +81,7 @@ class BumbleBee():
 
       #now update the main site
       self.api.sendDeviceScanResults(data, camera_files)
-    
+      
   def getBots(self):
 
     self.scanDevices()

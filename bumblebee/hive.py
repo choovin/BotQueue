@@ -271,6 +271,19 @@ def scanCameras():
       
   return cameras
 
+def scanSystem():
+ import platform
+
+ data = {}
+ data['machine'] = platform.machine()
+ data['platform'] = platform.platform()
+ data['processor'] = platform.processor()
+ data['python_version'] = platform.python_version()
+ data['system'] = platform.system()
+ data['uname'] = platform.uname()
+
+ return data
+     
 def takePicture(device, watermark = None, output="webcam.jpg", brightness = 50, contrast = 50):
   log = logging.getLogger('botqueue')
 
