@@ -138,9 +138,10 @@ class WorkerBee():
 
         #upload a webcam pic every so often.
         if time.time() - lastWebcamUpdate > 60:
-          if self.takePicture():
-            self.api.webcamUpdate("webcam.jpg", bot_id = self.data['id'])
-            lastWebcamUpdate = time.time()
+          outputName = "bot-%s.jpg" % self.data['id']
+          if self.takePicture(outputName):
+            self.api.webcamUpdate(outputName, bot_id = self.data['id'])
+          lastWebcamUpdate = time.time()
           
         time.sleep(self.sleepTime) # sleep for a bit to not hog resources
     except Exception as ex:
@@ -396,8 +397,7 @@ class WorkerBee():
       if json.dumps(message.data['driver_config']) != json.dumps(self.config):
         self.log.info("Driver config has changed, updating.")
         self.config = message.data['driver_config']
-        if self.driver:
-          self.driver.config = self.config
+        self.initializeDriver()
       
       self.data = message.data
     #time to die, mr bond!
@@ -422,12 +422,14 @@ class WorkerBee():
  
   def updateHomeBase(self, latest, temps):
     self.info("print: %0.2f%%" % float(latest))
-    if self.takePicture():
-      self.api.webcamUpdate("webcam.jpg", job_id = self.data['job']['id'], progress = "%0.5f" % float(latest), temps = temps)
+    outputName = "bot-%s.jpg" % self.data['id']
+    
+    if self.takePicture(outputName):
+      self.api.webcamUpdate(outputName, job_id = self.data['job']['id'], progress = "%0.5f" % float(latest), temps = temps)
     else:
       self.api.updateJobProgress(self.data['job']['id'], "%0.5f" % float(latest), temps)
 
-  def takePicture(self):
+  def takePicture(self, filename):
     #create our command to do the webcam image grabbing
     try:
       
@@ -448,7 +450,7 @@ class WorkerBee():
         if 'contrast' in self.config['webcam']:
           contrast = self.config['webcam']['contrast']
               
-        return hive.takePicture(device=device, watermark=watermark, output="webcam.jpg", brightness=brightness, contrast=contrast)
+        return hive.takePicture(device=device, watermark=watermark, output=filename, brightness=brightness, contrast=contrast)
 
       else:
         return False

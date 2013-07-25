@@ -72,8 +72,11 @@ class BumbleBee():
       if len(data['cameras']):
         for idx, camera in enumerate(data['cameras']):
           outfile = camera['name'] + '.jpg'
-          if hive.takePicture(camera['device'], watermark=None, output=outfile):
-            camera_files.append(outfile)
+          try:
+            if hive.takePicture(camera['device'], watermark=None, output=outfile):
+              camera_files.append(outfile)
+          except Exception as ex:
+            self.exception(ex)
 
       #now update the main site
       self.api.sendDeviceScanResults(data, camera_files)
@@ -169,7 +172,7 @@ class BumbleBee():
 
       #show an intro screen.
       self.screen.erase()
-      self.screen.addstr("\nBotQueue v%s starting up.\n\n" % self.api.version)
+      self.screen.addstr("\nBotQueue v%s starting up. Scanning devices, please be patient.\n\n" % self.api.version)
       self.screen.refresh()
     
       #our main loop until we're done.

@@ -5,8 +5,14 @@ import logging
 from threading import Thread
 
 def scanPorts():
-  import serial.tools.list_ports
-  return serial.tools.list_ports.comports()
+  try:
+    import serial.tools.list_ports
+    return serial.tools.list_ports.comports()
+  except Exception as ex:
+    self.log = logging.getLogger('botqueue')
+    self.log.error("Printcore cannot scan serial ports.")
+    self.log.exception(ex)
+    return None
 
 #todo: this whole thing sucks.  we need a much better way to interface with this.
 class printcoredriver(bumbledriver.bumbledriver):
@@ -65,8 +71,11 @@ class printcoredriver(bumbledriver.bumbledriver):
     return self.p.online and self.p.printer
 
   def stop(self):
-    self.p.stop()
-    self.disconnect()
+    try:
+      self.p.stop()
+      self.disconnect()
+    except AttributeError as ex:
+      self.log.error(ex)
   
   def getTemperature(self):
     return self.p.get_temperatures()
