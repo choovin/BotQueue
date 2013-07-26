@@ -339,14 +339,14 @@ def scanLinuxCPU():
   return d1
   
 def scanLinuxMemory():
-  d1 = {}
   r1 = re.compile('Mem:\s+(\d+)')
 
   command = 'free'
   result = subprocess.check_output(command, shell=True)
-  match = r1.match(line)
-  if match:
-    return match.group(1).rstrip()
+  for line in result.split('\n'):
+    match = r1.match(line)
+    if match:
+      return match.group(1).rstrip()
      
 def takePicture(device, watermark = None, output="webcam.jpg", brightness = 50, contrast = 50):
   log = logging.getLogger('botqueue')
