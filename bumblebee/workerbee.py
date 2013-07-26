@@ -78,6 +78,7 @@ class WorkerBee():
     else:
       self.error("Error talking to mothership: %s" % result['error'])
 
+  #TODO: move to printjob class
   def initializeDriver(self):
     #try:
     #  if self.driver:
@@ -94,6 +95,7 @@ class WorkerBee():
       self.errorMode(ex)
       #self.driver.disconnect()
 
+  #TODO: move to printjob class
   def driverFactory(self):
 
     module_name = 'drivers.' + self.config['driver'] + 'driver'
@@ -107,49 +109,6 @@ class WorkerBee():
       return drivers.dummydriver.dummydriver(self.config)
     else:
       raise Exception("Unknown driver specified.")
-      
-  #this is our entry point for the worker subprocess
-  def run(self):
-    #sleep for a random time to avoid contention
-    time.sleep(random.random())
-
-    lastWebcamUpdate = time.time()
-    try:
-      #okay, we're off!
-      self.running = True
-      while self.running:
-        
-        #see if there are any messages from the motherbee
-        self.checkMessages()
-        
-        #did we get a shutdown notice?
-        if not self.running:
-          break
-      
-        #slicing means we need to slice our job.
-        if self.data['status'] == 'slicing':
-          if self.data['job']['slicejob']['status'] == 'slicing' and self.config['can_slice']:
-              self.sliceJob()
-        #working means we need to process a job.
-        elif self.data['status'] == 'working':
-            self.processJob()
-            #self.getOurInfo() #if there was a problem with the job, we'll find it by pulling in a new bot state and looping again.
-            self.debug("Bot finished @ state %s" % self.data['status'])
-
-        #upload a webcam pic every so often.
-        if time.time() - lastWebcamUpdate > 60:
-          outputName = "bot-%s.jpg" % self.data['id']
-          if self.takePicture(outputName):
-            self.api.webcamUpdate(outputName, bot_id = self.data['id'])
-          lastWebcamUpdate = time.time()
-          
-        time.sleep(self.sleepTime) # sleep for a bit to not hog resources
-    except Exception as ex:
-      self.exception(ex)
-      self.driver.stop()
-      raise ex
-
-    self.debug("Exiting.")
 
   #get bot info from the mothership
   def getOurInfo(self):
@@ -172,6 +131,77 @@ class WorkerBee():
       self.error("Error looking up job info: %s" % result['error'])
       raise Exception("Error looking up job info: %s" % result['error'])
 
+  #pseudocode to handle running all sorts of generic jobs.
+  def runJob(self):    
+    #sleep for a random time to avoid contention
+    time.sleep(random.random())
+
+    #our main loop to process jobs as they come in.
+    lastUpdate = time.time()
+    try:
+      #okay, we're off!
+      self.running = True
+      while self.running:
+                
+        #okay, lets do our job.
+        if 'job' in self.data:
+          self.job = self.jobFactory()
+          self.job.start(self.data['job'])
+
+          #keep an eye on our job while its running
+          while self.job.isRunning():
+            #see if there are any messages from the motherbee
+            self.checkMessages()
+
+            #did we get a shutdown notice?
+            if not self.running:
+              break
+        
+        #ping homebase every minute or so.
+        elif time.time() - lastUpdate > 60:
+          outputName = "bot-%s.jpg" % self.data['id']
+          if self.takePicture(outputName):
+            self.api.webcamUpdate(outputName, bot_id = self.data['id'])
+          lastUpdate = time.time()
+          
+        # sleep for a bit to not hog resources
+        time.sleep(self.sleepTime)
+        
+        #see if there are any messages from the motherbee
+        self.checkMessages()
+        
+    #anythign bad happen?   
+    except Exception as ex:
+      self.exception(ex)
+      #TODO: move this to the printjob class
+      self.driver.stop()
+      raise ex
+
+    #peace out.
+    self.debug("Exiting.")
+      
+  def jobFactory(self):
+
+    job_type = self.data['job']['type']
+    module_name = 'jobs.' + job_type + 'job'
+    __import__(module_name)
+
+    if (self.data['job']['type'] == 'print'):
+      return jobs.printjob.printjob(self.data['job']);
+    elif (self.data['job']['type'] == 'slice'):
+      return jobs.slicejob.slicejob(self.data['job']);
+    elif (self.data['job']['type'] == 'timelapse'):
+      return jobs.timelapsejob.timelapsejob(self.data['job']);
+    elif (self.data['job']['type'] == 'render'):
+      return jobs.renderjob.renderjob(self.data['job']);
+    elif (self.data['job']['type'] == 'imageresize'):
+      return jobs.imageresizejob.imageresizejob(self.data['job']);
+    elif (self.data['job']['type'] == 'modelparse'):
+      return jobs.modelparsejob.modelparsejob(self.data['job']);
+    else:
+      raise Exception("Unknown job specified.")
+  
+  #todo: move to slicejob class
   def sliceJob(self):
     #download our slice file
     sliceFile = self.downloadFile(self.data['job']['slicejob']['input_file'])
@@ -228,6 +258,7 @@ class WorkerBee():
     #notify the queen bee of our status.
     self.sendMessage('job_update', self.data['job'])
  
+  #TODO: move to bumblejob class
   def downloadFile(self, fileinfo):
     myfile = hive.URLFile(fileinfo)
 
@@ -247,6 +278,7 @@ class WorkerBee():
     except Exception as ex:
       self.exception(ex)
             
+  #move to printjob class
   def processJob(self):
     #go get 'em, tiger!
     self.jobFile = self.downloadFile(self.data['job']['file'])
@@ -321,13 +353,17 @@ class WorkerBee():
 
   def pauseJob(self):
     self.info("Pausing job.")
-    self.driver.pause()
+    self.job.pause()
 
   def resumeJob(self):
     self.info("Resuming job.")
-    self.driver.resume()
+    self.job.resume()
 
   def stopJob(self):
+    self.info("Stopping job.")
+    self.job.stop()
+    
+    #todo: move to printjob class
     if self.driver and not self.driver.hasError():
       if self.driver.isRunning() or self.driver.isPaused():
         self.info("stopping driver.")
@@ -344,6 +380,7 @@ class WorkerBee():
       else:
         raise Exception("Unable to drop job: %s" % result['error'])
  
+  #todo: update this.
   def shutdown(self):
     self.info("Shutting down.")
     if(self.data['status'] == 'working' and self.data['job']['id']):
