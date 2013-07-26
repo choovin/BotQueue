@@ -2,7 +2,6 @@ v0.5 - Timelapses + On-Deck Jobs - ETA: August 2013
 
 BACKGROUND WORKER
 
-* report OS / uname -a / memory size / cpu speed for each token - include in devices scan.
 * extend botqueue to support generic jobs with json payload
 * bot/worker should have configuration to specify what jobs it can process.
 * job types: fabrication, toolpath generation, timelapse creation, 3d rendering, image processing, stl parsing
@@ -50,6 +49,12 @@ BONUS FEATURES
 * API - Add callback url support for web-based apps
 * WEB - add diff of slicer configs to slicejob page (current vs snapshot)
 * BUMBLEBEE - Better / faster shutdown
+
+------------------------------------------------------------------------------------
+
+v0.5 - CHANGELOG
+
+* report system info / OS / memory size / cpu speed for each token - include in devices scan.
 
 ------------------------------------------------------------------------------------
 

@@ -274,15 +274,79 @@ def scanCameras():
 def scanSystem():
  import platform
 
+ myos = determineOS()
+
  data = {}
+ data['os'] = myos
  data['machine'] = platform.machine()
  data['platform'] = platform.platform()
  data['processor'] = platform.processor()
  data['python_version'] = platform.python_version()
  data['system'] = platform.system()
  data['uname'] = platform.uname()
-
+ data['cpu'] = scanCPU()
+ 
+ if myos == 'osx':
+   data['memory'] = data['cpu']['hw.memsize']
+ elif myos == 'raspbrrypi' or myos == 'linux':
+  data['memory'] = scanLinuxMemory()
+ 
  return data
+
+def scanCPU():
+  myos = determineOS()
+  if myos == 'osx':
+    return scanOSXCPU()
+  elif myos == 'raspbrrypi' or myos == 'linux':
+    return scanLinuxCPU()
+
+def scanOSXCPU():
+  d1 = {}
+  r1 = re.compile('(.*): (.*)')
+
+  command = '/usr/sbin/sysctl hw'
+  result = subprocess.check_output(command, shell=True)
+  for line in result.split('\n'):
+    match = r1.match(line)
+    if match:
+      k = match.group(1).rstrip()
+      v = match.group(2).rstrip()
+      d1.update({k: v})
+
+  return d1
+
+def scanLinuxCPU():
+  script = '/proc/cpuinfo'
+
+  if not os.path.exists(script):
+    return {}
+
+  d1 = {}
+  r1 = re.compile('(\w+)\s+:(.*)')
+
+  with open(script, 'r') as f:
+    for line in f:
+      match = r1.match(line)
+      if match:
+        k = match.group(1).rstrip()
+        v = match.group(2).rstrip()
+        if k == 'processor':
+          proc = v
+          d1[proc] = {}
+        else:
+          d1[proc].update({k: v})
+
+  return d1
+  
+def scanLinuxMemory():
+  d1 = {}
+  r1 = re.compile('Mem:\s+(\d+)')
+
+  command = 'free'
+  result = subprocess.check_output(command, shell=True)
+  match = r1.match(line)
+  if match:
+    return match.group(1).rstrip()
      
 def takePicture(device, watermark = None, output="webcam.jpg", brightness = 50, contrast = 50):
   log = logging.getLogger('botqueue')
