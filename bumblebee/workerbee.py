@@ -5,7 +5,6 @@ import urllib2
 import os
 import subprocess
 import hive
-import ginsu
 import botqueueapi
 import hashlib
 import logging
@@ -14,10 +13,7 @@ import shutil
 import json
 
 class WorkerBee():
-  
-  data = {}
-  sleepTime = 0.5
-  
+    
   def __init__(self, data, mosi_queue, miso_queue):
 
     #find our local config info.
@@ -39,28 +35,60 @@ class WorkerBee():
 
     #get various objects we'll need
     self.api = botqueueapi.BotQueueAPI()
+    self.job = bumblejob.bumblejob()
     self.data = data
-    
-    self.driver = False
-    self.cacheHit = False
     self.running = False
-    
-    #load up our driver
-    self.initializeDriver()
-    
+    self.lastUpdate = 0
+    self.lastLocalUpdate = 0
+    self.sleepTime = 0.5  
+ 
+  #our main loop for all job processing
+  def run(self):
     #look at our current state to check for problems.
     try:
-      self.startupCheckState()
+      self.info("Worker startup")
+      self.running = True
+
+      #we shouldn't startup in a working state... that implies some sort of error.
+      if (self.data['status'] == 'working'):
+        self.errorMode("Startup in %s mode, dropping job # %s" % (self.data['status'], self.data['job']['id']))
+
+      #this is our main processing loop.
+      while self.running:
+        #see if there are any messages from the motherbee
+        self.checkMessages()
+
+        #did we get a job?
+        if 'job' in self.data:
+          #create our job
+          self.job = self.jobFactory(self.data['job'])
+          self.job.start()
+
+          #keep an eye on our job while its running
+          while self.job.isRunning():
+            #see if there are any messages from the motherbee
+            self.checkMessages()
+
+            #okay, let everyone know our status/progress
+            self.updateHomeBase(interval = 15, self.job.getPayload(), self.job.getFile())
+
+          #okay, our job is done.
+          self.finishJob()
+
+        #ping homebase to let her know we're alive
+        self.updateHomeBase(interval = 90)
+
+        # sleep for a bit to not hog resources
+        time.sleep(self.sleepTime)
+
+    #anything bad happen?   
     except Exception as ex:
       self.exception(ex)
-      
-  def startupCheckState(self):
-    self.info("Bot startup")
 
-    #we shouldn't startup in a working state... that implies some sort of error.
-    if (self.data['status'] == 'working'):
-      self.errorMode("Startup in %s mode, dropping job # %s" % (self.data['status'], self.data['job']['id']))
-  
+    #peace out.
+    self.debug("Exiting.")
+     
+  #crap, did something go wrong?
   def errorMode(self, error):
     self.error("Error mode: %s" % error)
     
@@ -78,37 +106,8 @@ class WorkerBee():
     else:
       self.error("Error talking to mothership: %s" % result['error'])
 
-  #TODO: move to printjob class
-  def initializeDriver(self):
-    #try:
-    #  if self.driver:
-    #    self.driver.disconnect()
-    #except Exception as ex:
-    #  self.exception("Disconnecting driver: %s" % ex)
-      
-    try:
-      self.driver = self.driverFactory()
-      #self.debug("Connecting to driver.")
-      #self.driver.connect()
-    except Exception as ex:
-      self.exception(ex) #dump a stacktrace for debugging.
-      self.errorMode(ex)
-      #self.driver.disconnect()
-
-  #TODO: move to printjob class
-  def driverFactory(self):
-
-    module_name = 'drivers.' + self.config['driver'] + 'driver'
-    __import__(module_name)
-
-    if (self.config['driver'] == 's3g'):
-      return drivers.s3gdriver.s3gdriver(self.config);
-    elif (self.config['driver'] == 'printcore'):
-      return drivers.printcoredriver.printcoredriver(self.config)
-    elif (self.config['driver'] == 'dummy'):
-      return drivers.dummydriver.dummydriver(self.config)
-    else:
-      raise Exception("Unknown driver specified.")
+  def finishJob(self):
+    pass
 
   #get bot info from the mothership
   def getOurInfo(self):
@@ -121,235 +120,28 @@ class WorkerBee():
       self.error("Error looking up bot info: %s" % result['error'])
       raise Exception("Error looking up bot info: %s" % result['error'])
 
-  #get bot info from the mothership
-  def getJobInfo(self):
-    self.debug("Looking up job #%s." % self.data['job']['id'])
-    result = self.api.jobInfo(self.data['job']['id'])
-    if (result['status'] == 'success'):
-      self.data['job'] = result['data']
-    else:
-      self.error("Error looking up job info: %s" % result['error'])
-      raise Exception("Error looking up job info: %s" % result['error'])
+  def jobFactory(self, payload):
 
-  #pseudocode to handle running all sorts of generic jobs.
-  def runJob(self):    
-    #sleep for a random time to avoid contention
-    time.sleep(random.random())
-
-    #our main loop to process jobs as they come in.
-    lastUpdate = time.time()
-    try:
-      #okay, we're off!
-      self.running = True
-      while self.running:
-                
-        #okay, lets do our job.
-        if 'job' in self.data:
-          self.job = self.jobFactory()
-          self.job.start(self.data['job'])
-
-          #keep an eye on our job while its running
-          while self.job.isRunning():
-            #see if there are any messages from the motherbee
-            self.checkMessages()
-
-            #did we get a shutdown notice?
-            if not self.running:
-              break
-        
-        #ping homebase every minute or so.
-        elif time.time() - lastUpdate > 60:
-          outputName = "bot-%s.jpg" % self.data['id']
-          if self.takePicture(outputName):
-            self.api.webcamUpdate(outputName, bot_id = self.data['id'])
-          lastUpdate = time.time()
-          
-        # sleep for a bit to not hog resources
-        time.sleep(self.sleepTime)
-        
-        #see if there are any messages from the motherbee
-        self.checkMessages()
-        
-    #anythign bad happen?   
-    except Exception as ex:
-      self.exception(ex)
-      #TODO: move this to the printjob class
-      self.driver.stop()
-      raise ex
-
-    #peace out.
-    self.debug("Exiting.")
-      
-  def jobFactory(self):
-
+    #format our job name into a class and such
     job_type = self.data['job']['type']
     module_name = 'jobs.' + job_type + 'job'
     __import__(module_name)
 
+    #okay, instantiate the right class and return it.
     if (self.data['job']['type'] == 'print'):
-      return jobs.printjob.printjob(self.data['job']);
+      return jobs.printjob.printjob(payload);
     elif (self.data['job']['type'] == 'slice'):
-      return jobs.slicejob.slicejob(self.data['job']);
+      return jobs.slicejob.slicejob(payload);
     elif (self.data['job']['type'] == 'timelapse'):
-      return jobs.timelapsejob.timelapsejob(self.data['job']);
+      return jobs.timelapsejob.timelapsejob(payload);
     elif (self.data['job']['type'] == 'render'):
-      return jobs.renderjob.renderjob(self.data['job']);
+      return jobs.renderjob.renderjob(payload);
     elif (self.data['job']['type'] == 'imageresize'):
-      return jobs.imageresizejob.imageresizejob(self.data['job']);
+      return jobs.imageresizejob.imageresizejob(payload);
     elif (self.data['job']['type'] == 'modelparse'):
-      return jobs.modelparsejob.modelparsejob(self.data['job']);
+      return jobs.modelparsejob.modelparsejob(payload);
     else:
-      raise Exception("Unknown job specified.")
-  
-  #todo: move to slicejob class
-  def sliceJob(self):
-    #download our slice file
-    sliceFile = self.downloadFile(self.data['job']['slicejob']['input_file'])
-    
-    #create and run our slicer
-    g = ginsu.Ginsu(sliceFile, self.data['job']['slicejob'])
-    g.slice()
-    
-    #watch the slicing progress
-    localUpdate = 0
-    lastUpdate = 0
-    while g.isRunning():
-      #check for messages like shutdown or stop job.
-      self.checkMessages()
-      if not self.running or self.data['status'] != 'slicing':
-        self.debug("Stopping slice job")
-        g.stop()
-        return
-      
-      #notify the local mothership of our status.
-      if (time.time() - localUpdate > 0.5):
-        self.data['job']['progress'] = g.getProgress()
-        self.sendMessage('job_update', self.data['job'])
-        localUpdate = time.time()
-        
-      #occasionally update home base.
-      if (time.time() - lastUpdate > 15):
-        lastUpdate = time.time()
-        self.api.updateJobProgress(self.data['job']['id'], "%0.5f" % g.getProgress())
-        
-      time.sleep(self.sleepTime)
-      
-    #how did it go?
-    sushi = g.sliceResult
-    
-    #move the file to the cache directory
-    cacheDir = hive.getCacheDirectory()
-    baseFilename = os.path.splitext(os.path.basename(self.data['job']['slicejob']['input_file']['name']))[0]
-    md5sum = hive.md5sumfile(sushi.output_file)
-    uploadFile = "%s%s-%s.gcode" % (cacheDir, md5sum, baseFilename)
-    self.debug("Moved slice output to %s" % uploadFile)
-    shutil.copy(sushi.output_file, uploadFile)
-
-    #update our slice job progress and pull in our update info.
-    self.info("Finished slicing, uploading results to main site.")
-    result = self.api.updateSliceJob(job_id=self.data['job']['slicejob']['id'], status=sushi.status, output=sushi.output_log, errors=sushi.error_log, filename=uploadFile)
-
-    #hack because the upload takes forever and mothership probably has an old status.
-    self.checkMessages()
-
-    #now pull in our new data.
-    self.changeStatus(result['data'])
-    
-    #notify the queen bee of our status.
-    self.sendMessage('job_update', self.data['job'])
- 
-  #TODO: move to bumblejob class
-  def downloadFile(self, fileinfo):
-    myfile = hive.URLFile(fileinfo)
-
-    localUpdate = 0
-    try:
-      myfile.load()
-
-      while myfile.getProgress() < 100:
-        #notify the local mothership of our status.
-        if (time.time() - localUpdate > 0.5):
-          self.data['job']['progress'] = myfile.getProgress()
-          self.sendMessage('job_update', self.data['job'])
-          localUpdate = time.time()
-        time.sleep(self.sleepTime)
-      #okay, we're done... send it back.
-      return myfile
-    except Exception as ex:
-      self.exception(ex)
-            
-  #move to printjob class
-  def processJob(self):
-    #go get 'em, tiger!
-    self.jobFile = self.downloadFile(self.data['job']['file'])
-
-    #notify the mothership of download completion
-    self.api.downloadedJob(self.data['job']['id'])
-
-    currentPosition = 0
-    localUpdate = 0
-    lastUpdate = 0
-    lastTemp = 0
-    try:
-      self.driver.startPrint(self.jobFile)
-      while self.driver.isRunning():
-        latest = self.driver.getPercentage()
-
-        #look up our temps?
-        if (time.time() - lastTemp > 1):
-          lastTemp = time.time()
-          temps = self.driver.getTemperature()
-      
-        #notify the mothership of our status.
-        if (time.time() - localUpdate > 0.5):
-          localUpdate = time.time()
-          self.data['job']['progress'] = latest
-          self.data['job']['temperature'] = temps
-          self.sendMessage('job_update', self.data['job'])
-      
-        #check for messages like shutdown or stop job.
-        self.checkMessages()
-        
-        #did we get paused?
-        while self.data['status'] == 'paused':
-          self.checkMessages()
-          time.sleep(self.sleepTime)
-
-        #should we bail out of here?
-        if not self.running or self.data['status'] != 'working':
-          self.stopJob()
-          return
-
-        #occasionally update home base.
-        if (time.time() - lastUpdate > 15):
-          lastUpdate = time.time()
-          self.updateHomeBase(latest, temps)
-          
-        if self.driver.hasError():
-          raise Exception(self.driver.getErrorMessage())
-          
-        time.sleep(self.sleepTime)
-
-      #did our print finish while running?
-      if self.running and self.data['status'] == 'working':
-        self.info("Print finished.")
-  
-        #send up a final 100% info.
-        self.data['job']['progress'] = 100.0
-        self.updateHomeBase(latest, temps)
-  
-        #finish the job online, and mark as completed.
-        result = self.api.completeJob(self.data['job']['id'])
-        if result['status'] == 'success':
-          self.changeStatus(result['data']['bot'])
-
-          #notify the queen bee of our status.
-          self.sendMessage('job_update', self.data['job'])
-        else:
-          self.error("Error notifying mothership: %s" % result['error'])
-    except Exception as ex:
-      self.exception(ex)
-      self.errorMode(ex)
+      raise Exception("Unknown job type '%s' specified." % job_type)
 
   def pauseJob(self):
     self.info("Pausing job.")
@@ -362,44 +154,50 @@ class WorkerBee():
   def stopJob(self):
     self.info("Stopping job.")
     self.job.stop()
-    
-    #todo: move to printjob class
-    if self.driver and not self.driver.hasError():
-      if self.driver.isRunning() or self.driver.isPaused():
-        self.info("stopping driver.")
-        self.driver.stop()
-    
+        
+  #todo: make this more robust.
   def dropJob(self, error = False):
-    self.stopJob()
-    
-    if len(self.data['job']) and self.data['job']['id']:
+    #only drop if we're actually running a job
+    if self.job.isRunning()):
+
+      #okay, stop our job too.
+      self.stopJob()
+
+      if error:
+        self.info("Dropping existing job (%s)" % error)
+      else:
+        self.info("Dropping existing job")
+
+      #make the call.
       result = self.api.dropJob(self.data['job']['id'], error)
-      self.info("Dropping existing job.")
       if (result['status'] == 'success'):
         self.getOurInfo()
       else:
         raise Exception("Unable to drop job: %s" % result['error'])
  
-  #todo: update this.
+  #we're done here - bail.
   def shutdown(self):
     self.info("Shutting down.")
-    if(self.data['status'] == 'working' and self.data['job']['id']):
+    if (self.job.isRunning()):
       self.dropJob("Shutting down.")
     self.running = False
-    
+   
+  #todo: this doesn't quite feel right.  should be merged with finishJob()
+  #let bumblebee know this job has changed statuses.
   def changeStatus(self, data):
     #check for message sending first because if we get stale info, it might cause issues with our new state.
     self.checkMessages()
-    self.sendMessage('bot_update', data)
+    self.sendMessage('worker_update', data)
     self.data = data
       
+  #notify the bumblebee host
   def sendMessage(self, name, data = False):
     self.checkMessages()
     #self.debug("Sending message")
     msg = Message(name, data)
     self.miso_queue.put(msg)
     
-  #loop through our workers and check them all for messages
+  #loop through out queue and check for messages.
   def checkMessages(self):
     #self.debug("Checking messages.")
     while not self.mosi_queue.empty():
@@ -433,8 +231,7 @@ class WorkerBee():
       #did we get a new config?
       if json.dumps(message.data['driver_config']) != json.dumps(self.config):
         self.log.info("Driver config has changed, updating.")
-        self.config = message.data['driver_config']
-        self.initializeDriver()
+        self.config = config
       
       self.data = message.data
     #time to die, mr bond!
@@ -456,16 +253,29 @@ class WorkerBee():
     
   def exception(self, msg):
     self.log.exception("%s: %s" % (self.config['name'], msg))
- 
-  def updateHomeBase(self, latest, temps):
-    self.info("print: %0.2f%%" % float(latest))
-    outputName = "bot-%s.jpg" % self.data['id']
-    
-    if self.takePicture(outputName):
-      self.api.webcamUpdate(outputName, job_id = self.data['job']['id'], progress = "%0.5f" % float(latest), temps = temps)
-    else:
-      self.api.updateJobProgress(self.data['job']['id'], "%0.5f" % float(latest), temps)
 
+  #TODO: make the payload stuff ubiquitous across the board.
+  def updateHomeBase(self, interval = 60, payload = None, files = {}):
+
+    #notify bumblebee of our status.
+    if time.time() - self.lastLocalUpdate > 0.5 and self.job.isRunning():
+      self.lastLocalUpdate = time.time()
+      self.sendMessage('job_update', self.job.getPayload())
+
+    #notify the botqueue.com mothership of our status
+    if time.time() - self.lastUpdate > 60:
+      self.lastUpdate = time.time()
+      self.info("job progress: %0.2f%%" % payload['progress'])
+    
+      #include a webcam picture?
+      if self.takePicture(outputName):
+        outputName = "bot-%s.jpg" % self.data['id']
+        files['webcam'] = outputName;
+        
+      #okay, send it to the botqueue.com server!
+      self.api.updateJobProgress(self.data['job']['id'], payload, files)
+
+  #take a webcam picture if we're configured for it.
   def takePicture(self, filename):
     #create our command to do the webcam image grabbing
     try:
@@ -496,7 +306,8 @@ class WorkerBee():
     except Exception as ex:
       self.exception(ex)
       return False
-    
+
+#todo: move to hive?
 class Message():
   def __init__(self, name, data = None):
     self.name = name

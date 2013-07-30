@@ -47,6 +47,9 @@ class BumbleBee():
 
   def loadBot(self, mosi_queue, miso_queue, data):
     try:
+      #sleep for a random time to avoid contention
+      time.sleep(random.random())
+      
       self.log.info("Loading bot %s" % data['name'])
       worker = workerbee.WorkerBee(data, mosi_queue, miso_queue)
       worker.run();

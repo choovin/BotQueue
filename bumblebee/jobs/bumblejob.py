@@ -1,12 +1,13 @@
 import time
 from threading import Thread
 import logging
+import hive
 
 class bumblejob(object):
 
-  def __init__(self, payload, api):
+  def __init__(self, payload = {}, api = None):
     self.payload = payload
-    self.api = api
+    self.result = {}
     self.log = logging.getLogger('botqueue')
     self.thread = None
     self.running = True
@@ -40,3 +41,23 @@ class bumblejob(object):
 
   def resume(self):
     self.paused = False
+    
+  #todo: fix me!
+  def downloadFile(self, fileinfo):
+    myfile = hive.URLFile(fileinfo)
+
+    localUpdate = 0
+    try:
+      myfile.load()
+
+      while myfile.getProgress() < 100:
+        #notify the local mothership of our status.
+        if (time.time() - localUpdate > 0.5):
+          self.data['job']['progress'] = myfile.getProgress()
+          self.sendMessage('job_update', self.data['job'])
+          localUpdate = time.time()
+        time.sleep(self.sleepTime)
+      #okay, we're done... send it back.
+      return myfile
+    except Exception as ex:
+      self.exception(ex)
