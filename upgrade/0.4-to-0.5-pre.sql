@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS `metajobs`;
-CREATE TABLE `metajobs` (
+CREATE TABLE `meta_jobs` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `bot_id` int(11) unsigned NOT NULL,
   `user_id` int(11) unsigned NOT NULL,

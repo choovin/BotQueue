@@ -15,7 +15,7 @@
   passthru($cmd);
   
   // get our slicejobs lined up.
-  echo "Populating metajobs from slicejobs\n";
+  echo "Populating meta_jobs from slice_jobs\n";
   $rs = db()->query("SELECT * FROM slice_jobs");
   while ($row = $rs->fetch_assoc())
   {
@@ -61,7 +61,7 @@
   }
   
   // get our printjobs lined up.
-  echo "Populating print_jobs / metajobs from jobs\n";
+  echo "Populating print_jobs / meta_jobs from jobs\n";
   $rs = db()->query("SELECT * FROM jobs");
   while ($row = $rs->fetch_assoc())
   {
