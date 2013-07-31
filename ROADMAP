@@ -5,35 +5,6 @@ BACKGROUND WORKER
 * create finishJob api call
 * combine webcam update and update job progress api calls
 * BUMBLEBEE - update job display screen with better info.
-* DB - add meta_jobs table:
-
-id
-bot_id
-user_id
-subjob_id
-subjob_type enum('print', 'slice', 'timelapse', 'render', 'imageresize')
-status enum('available', 'taken', 'qa', 'pass', 'fail', 'canceled')
-progress
-output_log
-error_log
-add_date
-taken_date
-finish_date
-qa_date
-uid
-
-* DB - add print_jobs table
-
-id
-metajob_id
-file_id
-
-* DB - modify slice_jobs rename job_id to metajob_id
-* DB - modify slice_jobs remove user_id, uid, status, progress, add_date, taken_date, finish_date, output_log, error_log
-* DB - modify jobs remove status, downloaded_time, sliced_time
-* DB - modify jobs add print_job_id
-
-* WEB - script to convert 0.4 db to 0.5 db.
 
 * job types: fabrication, toolpath generation, timelapse creation, 3d rendering, image processing, stl parsing
 * main status: available / taken / qa / pass / fail / canceled
@@ -41,7 +12,6 @@ file_id
 * WEB - bot/worker should have configuration to specify what jobs it can process.
 * sub-status (job specific)
   * downloading / working / uploading / etc.
-
 
 CLOUD SLICING
 
@@ -88,6 +58,10 @@ v0.5 - CHANGELOG
 * report system info / OS / memory size / cpu speed for each token - include in devices scan.
 * move job-specific execution to separate classes in jobs subfolder
 * extend bumblebee to support generic jobs with json payload
+* DB - add meta_jobs table:
+* DB - add print_jobs table
+* DB - modify slice_jobs add metajob_id
+* WEB - script to convert 0.4 db to 0.5 db.
 
 ------------------------------------------------------------------------------------
 
