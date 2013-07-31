@@ -6,12 +6,12 @@
   
   //dump our production database
   echo "Dumping backup data.\n";
-  $cmd = "/usr/bin/mysqldump -u root {$database} > {$database}-v1.sql";
+  $cmd = "/usr/bin/mysqldump -u root {$database} > {$database}-v0.1.sql";
   passthru($cmd);
   
   //overwrite our dev database
   echo "Upgrading v1 to v2.\n";
-  $cmd = "/usr/bin/mysql -u root {$database} < v1tov2.sql";
+  $cmd = "/usr/bin/mysql -u root {$database} < 0.1-to-0.2.sql";
   passthru($cmd);
   
   //finished!!!!
