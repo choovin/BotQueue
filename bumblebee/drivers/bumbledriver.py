@@ -83,11 +83,3 @@ class bumbledriver(object):
     
   def isPaused(self):
     return self.paused
-
-  # is this chaff?
-  # this will really need to happen outside our thread, so we don't interrupt printing.
-  def phoneHome(self, latest):
-    if (time.time() - self.lastUpdate > 30):
-      print "%0.2f%%" % latest
-      self.lastUpdate = time.time()
-      self.api.updateJobProgress(self.job['id'], "%0.5f" % latest)

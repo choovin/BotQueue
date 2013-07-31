@@ -7,56 +7,67 @@ class bumblejob(object):
 
   def __init__(self, payload = {}, api = None):
     self.payload = payload
+    self.progress = 0
+    self.status = {}
     self.result = {}
+
     self.log = logging.getLogger('botqueue')
+
     self.thread = None
-    self.running = True
+    self.running = False
     self.paused = False
+    self.finished = False
   
   def start(self):
     self.log.debug("BumbleJob: start job")
     self.running = True
+    self.paused = False
+    self.finished = False
     self.thread = Thread(target=self.run).start()
     
   def run(self):
+    self.finished = True
     pass
     
   def stop():
     self.running = False
-    
-  def isRunning(self):
-    return self.running
 
-  def isPaused(self):
-    return self.paused
-
-  def getPercentage(self):
-    return 0
-    
-  def getStatus(self):
-    pass
-    
   def pause(self):
     self.paused = True
 
   def resume(self):
     self.paused = False
     
-  #todo: fix me!
-  def downloadFile(self, fileinfo):
-    myfile = hive.URLFile(fileinfo)
+  def isRunning(self):
+    return self.running and self.thread.is_alive()
+    
+  def isFinished(self):
+    return self.finished
 
-    localUpdate = 0
+  def isPaused(self):
+    return self.paused
+
+  def getPercentage(self):
+    return self.progress
+    
+  def getStatus(self):
+    self.status['progress'] = self.progress
+    return self.status
+    
+  def getResult(self):
+    return self.result
+    
+  def downloadFile(self, fileinfo):
     try:
+      #start the download
+      myfile = hive.URLFile(fileinfo)
       myfile.load()
 
+      #update our progress bar while we download
       while myfile.getProgress() < 100:
-        #notify the local mothership of our status.
-        if (time.time() - localUpdate > 0.5):
-          self.data['job']['progress'] = myfile.getProgress()
-          self.sendMessage('job_update', self.data['job'])
-          localUpdate = time.time()
+        self.progress = myfile.getProgress()
         time.sleep(self.sleepTime)
+
       #okay, we're done... send it back.
       return myfile
     except Exception as ex:

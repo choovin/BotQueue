@@ -1,15 +1,7 @@
 import time
-import drivers
-import tempfile
-import urllib2
-import os
-import subprocess
 import hive
 import botqueueapi
-import hashlib
 import logging
-import random
-import shutil
 import json
 
 class WorkerBee():
@@ -70,10 +62,11 @@ class WorkerBee():
             self.checkMessages()
 
             #okay, let everyone know our status/progress
-            self.updateHomeBase(interval = 15, self.job.getPayload(), self.job.getFile())
+            self.updateHomeBase(interval = 15, self.job.getResults())
 
           #okay, our job is done.
-          self.finishJob()
+          if self.job.isFinished():
+            self.finishJob()
 
         #ping homebase to let her know we're alive
         self.updateHomeBase(interval = 90)
@@ -107,7 +100,15 @@ class WorkerBee():
       self.error("Error talking to mothership: %s" % result['error'])
 
   def finishJob(self):
-    pass
+    #update our slice job progress and pull in our update info.
+    self.info("Finished job, uploading results to main site.")
+    result = self.api.finishJob(job_id=self.job.payload['id'], result = self.job.getResult())
+
+    #now pull in our new data.
+    self.changeStatus(result['data'])
+
+    #notify the queen bee of our status.
+    self.sendMessage('job_update', self.job.getStatus())
 
   #get bot info from the mothership
   def getOurInfo(self):
@@ -236,6 +237,8 @@ class WorkerBee():
       self.data = message.data
     #time to die, mr bond!
     elif message.name == 'shutdown':
+      if self.job.isRunning():
+        self.stopJob()
       self.shutdown()
       pass
 
@@ -260,10 +263,10 @@ class WorkerBee():
     #notify bumblebee of our status.
     if time.time() - self.lastLocalUpdate > 0.5 and self.job.isRunning():
       self.lastLocalUpdate = time.time()
-      self.sendMessage('job_update', self.job.getPayload())
+      self.sendMessage('job_update', self.job.getStatus())
 
     #notify the botqueue.com mothership of our status
-    if time.time() - self.lastUpdate > 60:
+    if time.time() - self.lastUpdate > interval:
       self.lastUpdate = time.time()
       self.info("job progress: %0.2f%%" % payload['progress'])
     

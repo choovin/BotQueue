@@ -11,6 +11,7 @@ import hashlib
 import stacktracer
 import base64
 import json
+import random
 
 class BumbleBee():
   
@@ -252,7 +253,7 @@ class BumbleBee():
     #self.log.debug("Mothership got message %s" % message.name)
     if message.name == 'job_update':
       link.job = message.data
-    elif message.name == 'bot_update':
+    elif message.name == 'worker_update':
       if link.bot['status'] != message.data['status']:
         self.log.info("Mothership: %s status changed from %s to %s" % (link.bot['name'], link.bot['status'], message.data['status']))
       link.bot = message.data
