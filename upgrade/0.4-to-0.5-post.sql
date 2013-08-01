@@ -1,3 +1,7 @@
+update bots set status = 'working' where status = 'slicing';
+update bots set status = 'offline' where status = 'maintenance';
+alter table bots change status enum('idle', 'working', 'paused', 'waiting', 'error', 'offline') default 'idle';
+
 alter table slice_jobs drop user_id;
 alter table slice_jobs drop uid;
 alter table slice_jobs drop status;

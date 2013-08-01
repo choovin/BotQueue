@@ -2,16 +2,15 @@ v0.5 - Cloud Slicing + Timelapses - ETA: August 2013
 
 BACKGROUND WORKER
 
-* create finishJob api call
-* combine webcam update and update job progress api calls
-* BUMBLEBEE - update job display screen with better info.
-
-* job types: fabrication, toolpath generation, timelapse creation, 3d rendering, image processing, stl parsing
-* main status: available / taken / qa / pass / fail / canceled
+* WEB - test and finish 0.4 to 0.5 upgrade script
+* WEB - test and fix all front-end functionality post-0.5 upgrade
+* API - create finishJob api call
+* API - combine webcam update and update job progress api calls
+* API - add version check to deny access to any clients < 0.5.0
 * BUMBLEBEE - refactor process caller script to be a generic class.
-* WEB - bot/worker should have configuration to specify what jobs it can process.
-* sub-status (job specific)
-  * downloading / working / uploading / etc.
+* BUMBLEBEE - update job display screen with better info.
+* WEB - bot should have configuration to specify what jobs it can process.
+* WEB - bot should have a setting to determine what kind of machine it is (printer, cnc, worker, etc.)
 
 CLOUD SLICING
 
@@ -43,6 +42,7 @@ TIMELAPSE GENERATION
 
 BONUS FEATURES
 
+* WEB - switch leaderboard to monthly.
 * BUMBLEBEE - downloading of slice engines & other worker software tools.
 * WEB - Single unified queue view w/ auto-update
   * combine queue page into single list of all open jobs w/ tabs to limit based on job status
