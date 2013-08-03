@@ -20,7 +20,7 @@
   while ($row = $rs->fetch_assoc())
   {
     $sj = new SliceJob($row['id']);
-    $j = $sj->getJob();
+    $j = new Job($sj->get('job_id'));
     
     $mj = new MetaJob();
     $mj->set('bot_id', $j->id);

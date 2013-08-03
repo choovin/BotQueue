@@ -35,4 +35,5 @@ alter table slice_jobs add key(metajob_id);
 
 alter table jobs add `slicejob_id` int(11) unsigned NOT NULL after slice_job_id;
 alter table jobs set slicejob_id = slice_job_id;
+alter table jobs drop slice_job_id;
 alter table jobs add `printjob_id` int(11) unsigned NOT NULL before slicejob_id;
