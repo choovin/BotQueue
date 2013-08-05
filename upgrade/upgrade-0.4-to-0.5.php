@@ -2,12 +2,25 @@
   require("../extensions/global.php");
   $start_time = microtime(true);
   
-  $database = "devqueue";
+  $database = RR_DB_NAME;
+  $dump_file = "{$database}-v0.4.sql";
   
+  //this is for when we're developing on the import script and want to reload the db before running changes.
+  if (file_exists($dump_file))
+  {
+    //overwrite our dev database
+    echo "Reloading db dump.\n";
+    $cmd = "/usr/bin/mysql -u root {$database} < {$dump_file}";
+    passthru($cmd);
+    
+  }
   //dump our production database
-  echo "Dumping backup data.\n";
-  $cmd = "/usr/bin/mysqldump -u root {$database} > {$database}-v0.4.sql";
-  passthru($cmd);
+  else
+  {
+    echo "Dumping backup data.\n";
+    $cmd = "/usr/bin/mysqldump -u root {$database} > {$dump_file}";
+    passthru($cmd);    
+  }
   
   //overwrite our dev database
   echo "Creating new tables.\n";
@@ -21,43 +34,69 @@
   {
     $sj = new SliceJob($row['id']);
     $j = new Job($sj->get('job_id'));
-    
-    $mj = new MetaJob();
-    $mj->set('bot_id', $j->id);
-    $mj->set('job_id', $sj->get('job_id'));
-    $mj->set('subjob_id', $sj->id);
-    $mj->set('subjob_type', 'slice');
-    
-    if ($sj->get('status') == 'available')
-      $mj->set('status', 'available');      
-    else if ($sj->get('status') == 'slicing')
-      $mj->set('status', 'taken');      
-    else if ($sj->get('status') == 'pending')
-      $mj->set('status', 'qa');      
-    else if ($sj->get('status') == 'complete')
-      $mj->set('status', 'pass'); 
-    else if ($sj->get('status') == 'failure')
-      $mj->set('status', 'fail');   
-    else if ($sj->get('status') == 'expired')
+
+    if ($j->isHydrated())
     {
-      $mj->set('status', 'pass');
-      $sj->set('is_expired', 1);
+      $mj = new MetaJob();
+      $mj->set('bot_id', $j->id);
+      $mj->set('user_id', $j->get('user_id'));
+      $mj->set('job_id', $sj->get('job_id'));
+      $mj->set('subjob_id', $sj->id);
+      $mj->set('subjob_type', 'slice');
+
+      if ($sj->get('status') == 'available')
+      {
+        $mj->set('status', 'available');      
+        $mj->set('progress', 0);
+      }
+      else if ($sj->get('status') == 'slicing')
+      {
+        $mj->set('status', 'taken');      
+        $mj->set('progress', $j->get('progress'));
+      }
+      else if ($sj->get('status') == 'pending')
+      {
+        $mj->set('status', 'qa');      
+        $mj->set('progress', 100);
+      }
+      else if ($sj->get('status') == 'complete')
+      {
+        $mj->set('status', 'pass'); 
+        $mj->set('progress', 100);
+      }
+      else if ($sj->get('status') == 'failure')
+      {
+        $mj->set('status', 'fail');   
+        $mj->set('progress', 100);
+      }
+      else if ($sj->get('status') == 'expired')
+      {
+        $mj->set('progress', 100);
+        $mj->set('status', 'pass');
+        $sj->set('is_expired', 1);
+      }
+
+      $mj->set('output_log', $sj->get('output_log'));
+      $mj->set('error_log', $sj->get('error_log'));
+      $mj->set('add_date', $sj->get('add_date'));
+      $mj->set('taken_date', $sj->get('taken_date'));
+      $mj->set('finish_date', $sj->get('finish_date'));
+      $mj->set('qa_date', $sj->get('finish_date'));
+      $mj->set('uid', $sj->get('uid'));
+
+      $mj->save();
+
+      $sj->set('metajob_id', $mj->id);
+      $sj->save(); 
+
+      $j->set('slicejob_id', $mj->id);
+      $j->save();
     }
-    
-    $mj->set('output_log', $sj->get('output_log'));
-    $mj->set('error_log', $sj->get('error_log'));
-    $mj->set('add_date', $sj->get('add_date'));
-    $mj->set('taken_date', $sj->get('taken_date'));
-    $mj->set('finish_date', $sj->get('finish_date'));
-    $mj->set('qa_date', $sj->get('finish_date'));
-    
-    $mj->save();
-    
-    $sj->set('metajob_id', $mj->id);
-    $sj->save(); 
-    
-    $j->set('slicejob_id', $mj->id);
-    $j->save();
+    else
+    {
+      $sj->delete();
+      echo "Job $j->id not found.\n";
+    }
   }
   
   // get our printjobs lined up.
@@ -76,8 +115,10 @@
       $mj = new MetaJob();
       $mj->set('bot_id', $j->get('bot_id'));
       $mj->set('job_id', $j->id);
+      $mj->set('user_id', $j->get('user_id'));
       $mj->set('subjob_id', $pj->id);
       $mj->set('subjob_type', 'print');
+      $mj->set('progress', $j->get('progress'));
 
       if ($j->get('status') == 'available')
         $mj->set('status', 'available');      

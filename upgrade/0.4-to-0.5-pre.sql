@@ -1,8 +1,9 @@
-DROP TABLE IF EXISTS `metajobs`;
+DROP TABLE IF EXISTS `meta_jobs`;
 CREATE TABLE `meta_jobs` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `bot_id` int(11) unsigned NOT NULL,
   `user_id` int(11) unsigned NOT NULL,
+  `job_id` int(11) unsigned NOT NULL,
   `subjob_id` int(11) unsigned NOT NULL,
   `subjob_type` enum('print', 'slice', 'timelapse', 'render', 'imageresize'),
   `status` enum('available', 'taken', 'qa', 'pass', 'fail', 'canceled'),
@@ -16,6 +17,7 @@ CREATE TABLE `meta_jobs` (
   `uid` char(40) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
+  KEY `job_id` (`job_id`),
   KEY `subjob_type` (`subjob_type`),
   KEY `status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -29,11 +31,11 @@ CREATE TABLE `print_jobs` (
   KEY `metajob_id` (`metajob_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-alter table slice_jobs add `metajob_id` int(11) unsigned NOT NULL;
+alter table slice_jobs add `metajob_id` int(11) unsigned NOT NULL after id;
 alter table slice_jobs add `is_expired` tinyint(4) unsigned NOT NULL default 0;
 alter table slice_jobs add key(metajob_id);
 
 alter table jobs add `slicejob_id` int(11) unsigned NOT NULL after slice_job_id;
-alter table jobs set slicejob_id = slice_job_id;
+update jobs set slicejob_id = slice_job_id;
 alter table jobs drop slice_job_id;
-alter table jobs add `printjob_id` int(11) unsigned NOT NULL before slicejob_id;
+alter table jobs add `printjob_id` int(11) unsigned NOT NULL after file_id;
