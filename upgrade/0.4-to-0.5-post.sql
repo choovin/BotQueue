@@ -13,7 +13,9 @@ alter table slice_jobs drop output_log;
 alter table slice_jobs drop error_log;
 alter table slice_jobs drop job_id;
 
-alter table jobs drop status;
+update jobs set status = 'taken' where status = 'slicing';
+update jobs set status = 'taken' where status = 'downloading';
+alter table jobs modify status enum('available', 'taken', 'qa', 'complete', 'failure', 'canceled') default 'available';
 alter table jobs drop taken_time;
 alter table jobs drop downloaded_time;
 alter table jobs drop finished_time;

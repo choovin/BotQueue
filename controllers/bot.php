@@ -137,7 +137,7 @@
 				$this->set('webcam', $bot->getWebcamImage());
 				$this->set('app', $bot->getApp());
 
-				$jobs = $bot->getJobs(null, 'user_sort', 'DESC');
+				$jobs = $bot->getAllJobs();
 				$this->set('jobs', $jobs->getRange(0, 50));
 				$this->set('job_count', $jobs->count());
 				$this->set('stats', $bot->getStats());
@@ -576,7 +576,7 @@
 				
 				$this->setTitle("Bot Jobs - " . $bot->getName());
 				
-				$collection = $bot->getJobs();
+				$collection = $bot->getAllJobs();
 	      $per_page = 20;
 	      $page = $collection->putWithinBounds($this->args('page'), $per_page);
     

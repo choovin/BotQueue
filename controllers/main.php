@@ -34,11 +34,11 @@
 				$this->set('bots', $bots->getRange(0, 10));
 				$this->set('bot_count', $bots->count());
 
-				$on_deck = User::$me->getJobs('available', 'user_sort', 'ASC');
+				$on_deck = User::$me->getAvailableJobs();
 				$this->set('on_deck', $on_deck->getRange(0, 5));
 				$this->set('on_deck_count', $on_deck->count());
 
-				$finished = User::$me->getJobs('complete', 'verified_time', 'DESC');
+				$finished = User::$me->getPassedJobs();
 				$this->set('finished', $finished->getRange(0, 5));
 				$this->set('finished_count', $finished->count());
 				  

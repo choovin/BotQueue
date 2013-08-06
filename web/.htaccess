@@ -147,6 +147,11 @@ RewriteRule ^slicejob:([0-9]+)$										  dispatcher.php?controller=slicer&view
 RewriteRule ^slicejob:([0-9]+)/pass$								dispatcher.php?controller=slicer&view=job_update&id=$1&pass=1 [NC,L]
 RewriteRule ^slicejob:([0-9]+)/fail$								dispatcher.php?controller=slicer&view=job_update&id=$1&fail=1 [NC,L]
 
+#our metajob stuff now.
+RewriteRule ^metajob:([0-9]+)$										dispatcher.php?controller=metajob&view=view&id=$1 [NC,L]
+RewriteRule ^metajob:([0-9]+)/pass$								dispatcher.php?controller=metajob&view=update&id=$1&pass=1 [NC,L]
+RewriteRule ^metajob:([0-9]+)/fail$								dispatcher.php?controller=metajob&view=update&id=$1&fail=1 [NC,L]
+
 #ugh, legal stuff
 RewriteRule ^tos$												dispatcher.php?controller=main&view=tos [NC,L]
 RewriteRule ^privacy$										dispatcher.php?controller=main&view=privacy [NC,L]

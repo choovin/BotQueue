@@ -25,19 +25,19 @@
 			$this->setTitle(User::$me->getName() . "'s Jobs");
 			$this->set('area', 'jobs');
 			
-			$available = User::$me->getJobs('available');
+			$available = User::$me->getAvailableJobs();
 			$this->set('available', $available->getRange(0, 10));
 			$this->set('available_count', $available->count());
 			
-			$taken = User::$me->getJobs('taken');
+			$taken = User::$me->getTakenJobs();
 			$this->set('taken', $taken->getRange(0, 10));
 			$this->set('taken_count', $taken->count());
 			
-			$complete = User::$me->getJobs('complete', 'finished_time', 'DESC');
+			$complete = User::$me->getPassedJobs();
 			$this->set('complete', $complete->getRange(0, 10));
 			$this->set('complete_count', $complete->count());
 			
-			$failure = User::$me->getJobs('failure');
+			$failure = User::$me->getFailedJobs();
 			$this->set('failure', $failure->getRange(0, 10));
 			$this->set('failure_count', $failure->count());
 		}
@@ -48,7 +48,6 @@
 		  
 		  $this->setTitle("Latest Completed Jobs");
 		  
-		  //$available = User::$me->getJobs('complete', 'finished_time', 'DESC');
       $sql = "SELECT id, webcam_image_id FROM jobs WHERE webcam_image_id != 0 AND status = 'complete' ORDER BY finished_time DESC";
       $available = new Collection($sql, array('Job' => 'id', 'S3File' => 'webcam_image_id'));
 			$this->set('jobs', $available->getRange(0, 24));
@@ -64,20 +63,28 @@
 			try
 			{
 				if ($status == 'available')
+				{
 					$this->setTitle(User::$me->getName() . "'s Available Jobs");
+					$collection = User::$me->getAvailableJobs();
+				}
 				else if ($status == 'taken')
+				{
 					$this->setTitle(User::$me->getName() . "'s Working Jobs");
+					$collection = User::$me->getTakenJobs();
+				}
 				else if ($status == 'complete')
-					$this->setTitle(User::$me->getName() . "'s Finished Jobs");
+				{
+  					$this->setTitle(User::$me->getName() . "'s Finished Jobs");
+  			    $collection = User::$me->getPassedJobs();
+				}
 				else if ($status == 'failure')
+				{
 					$this->setTitle(User::$me->getName() . "'s Failed Jobs");
+			    $collection = User::$me->getFailedJobs();
+				}
 				else
 					throw new Exception("That is not a valid status!");
 				
-				if ($status == 'complete')
-				  $collection = User::$me->getJobs($status, 'finished_time', 'DESC');
-	      else
-	        $collection = User::$me->getJobs($status);
 	      $per_page = 20;
 	      $page = $collection->putWithinBounds($this->args('page'), $per_page);
     

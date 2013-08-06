@@ -87,10 +87,10 @@
 			$s2c = array(
 			  'idle' => 'success',
 				'working' => 'info',
-				'slicing' => 'info',
+				'paused' => '',
 				'waiting' => 'warning',
 				'error' => 'danger',
-				'offline' => 'inverse',
+				'offline' => 'inverse'
 			);
 			
 			return $s2c[$this->get('status')];
@@ -117,18 +117,15 @@
 		  return new S3File($this->get('webcam_image_id'));
 		}
 		
-		public function getJobs($status = null, $sortField = 'user_sort', $sortOrder = 'ASC')
+		public function getAllJobs()
 		{
-			if ($status !== null)
-				$statusSql = " AND status = '" . db()->escape($status) . "'";
-				
 			$sql = "
 				SELECT id
 				FROM jobs
 				WHERE bot_id = " . db()->escape($this->id) ."
-					{$statusSql}
-				ORDER BY {$sortField} {$sortOrder}
+				ORDER BY user_sort ASC
 			";
+
 			return new Collection($sql, array('Job' => 'id'));
 		}
 		
@@ -149,6 +146,7 @@
 			return (User::$me->id == $this->get('user_id'));
 		}	
 		
+		//TODO: update with metajob stuff.
 		public function canGrab($job)
 		{
       //if we're already the owner, we can grab the job.
@@ -172,6 +170,7 @@
 			return true;
 		}
 		
+		//TODO: update with metajob stuff.
 		public function grabJob($job, $can_slice = true)
 		{
 			$job->set('status', 'taken');
@@ -200,13 +199,12 @@
         }
         
         //is there an existing slice job w/ this exact file and config?
-        $sj = SliceJob::byConfigAndSource($config->id, $job->get('source_file_id'));
-        if ($sj->isHydrated())
+        $mj = SliceJob::byConfigAndSource($config->id, $job->get('source_file_id'));
+        if ($mj->isHydrated())
         {
           //update our job status.
-          $job->set('slice_job_id', $sj->id);
-          $job->set('slice_complete_time', $job->get('taken_time'));
-          $job->set('file_id', $sj->get('output_id'));
+          $job->set('slicejob_id', $sj->id);
+          $job->set('file_id', $mj->getSubJob()->get('output_id'));
           $job->save();
         }
         else
@@ -245,6 +243,7 @@
 			return $job;
 		}
 		
+		//TODO: update with metajob stuff
 		public function canDrop($job)
 		{
 			if ($job->get('bot_id') == $this->id && $this->get('job_id') == $job->id)
@@ -256,6 +255,7 @@
 				return false;
 		}
 		
+		//TODO: update with metajob stuff
 		public function dropJob($job)
 		{
 		  //if its a sliced job, clear it for a potentially different bot.
@@ -300,6 +300,7 @@
 		  $this->save();
 		}
 
+    //TODO: update this with metajob stuff
 		public function canComplete($job)
 		{
 			if ($job->get('bot_id') == $this->id && $job->get('status') == 'taken')
@@ -311,6 +312,7 @@
 				return false;
 		}
 		
+		//TODO: update this with metajob stuff
 		public function completeJob($job)
 		{
 			$job->set('status', 'qa');
@@ -368,9 +370,12 @@
 			
 			//pull in our time based stats.
 			$sql = "
-				SELECT sum(unix_timestamp(verified_time) - unix_timestamp(finished_time)) as wait, sum(unix_timestamp(finished_time) - unix_timestamp(taken_time)) as runtime, sum(unix_timestamp(verified_time) - unix_timestamp(taken_time)) as total
-				FROM jobs
-				WHERE status = 'complete'
+				SELECT
+				  (sum(unix_timestamp(taken_date) - unix_timestamp(add_date)) + sum(unix_timestamp(qa_date) - unix_timestamp(finish_date))) as wait, 
+				  sum(unix_timestamp(finish_date) - unix_timestamp(taken_date)) as runtime,
+				  sum(unix_timestamp(qa_date) - unix_timestamp(add_date)) as total
+				FROM meta_jobs
+				WHERE status = 'pass'
 					AND bot_id = ". db()->escape($this->id);
 
 			$stats = db()->getArray($sql);
@@ -379,7 +384,10 @@
 			$data['total_time'] = (int)$stats[0]['total'];
 			
 			//pull in our runtime stats
-      $sql = "SELECT sum(unix_timestamp(end_date) - unix_timestamp(start_date)) FROM job_clock WHERE status != 'working' AND bot_id = " . db()->escape($this->id);
+      $sql = "
+        SELECT sum(unix_timestamp(end_date) - unix_timestamp(start_date)) 
+        FROM job_clock WHERE status != 'working'
+          AND bot_id = " . db()->escape($this->id);
 			$data['total_runtime'] = (int)db()->getValue($sql);
 			
 			if ($data['total'])
@@ -401,7 +409,7 @@
 		public function delete()
 		{
 			//delete our jobs.
-			$jobs = $this->getJobs()->getAll();
+			$jobs = $this->getAllJobs()->getAll();
 			foreach ($jobs AS $row)
 			{
 				$row['Job']->delete();

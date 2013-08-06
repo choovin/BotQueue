@@ -16,26 +16,41 @@
     along with BotQueue.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-	class PrintJob extends SubJob
+	class SubJob extends Model
 	{
-		public function __construct($id = null)
+	  public function __construct($id = null, $table = null)
 		{
-			parent::__construct($id, "print_jobs");
+			parent::__construct($id, $table);
+		}
+		
+		public function getMetaJob()
+		{
+		  return new MetaJob($this->get('metajob_id'));
+    }
+    
+    public function getName()
+		{
+			return "#" . str_pad($this->get('metajob_id'), 4, "0", STR_PAD_LEFT) . '.' . str_pad($this->id, 4, "0", STR_PAD_LEFT);
+		}
+		
+		public function getUrl()
+		{
+		  return "/metajob:" . $this->get('metajob_id');
 		}
 		
 		public function getAPIData()
 		{
-		  $r = parent::getAPIData();
-		  
-      $r['file'] = $this->getFile()->getAPIData();
-      $r['driver'] = $this->getMetaJob()->getBot()->getDriverConfig();
+			$r = array();
+			$r['id'] = $this->id;
+			$r['metajob_id'] = $this->get('metajob_id');
+			$r['name'] = $this->getName();
 
 			return $r;
 		}
 		
-		public function getFile()
+		public function getStatusHTML($status = null)
 		{
-		  return new S3File($this->get('file_id'));
+		  return $this->getMetaJob()->getStatusHTML($status);
 		}
 	}
 ?>

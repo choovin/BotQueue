@@ -327,18 +327,59 @@
 
 			return new Collection($sql, array('Bot' => 'id', 'Queue' => 'queue_id', 'Job' => 'job_id'));
 		}
+		
+		public function getAvailableJobs()
+		{
+			$sql = "
+				SELECT id
+				FROM jobs
+				WHERE user_id = ". db()->escape($this->id) ."
+					AND status = 'available'
+				ORDER BY user_sort ASC
+			";
 
-		public function getJobs($status = null, $sortField = 'user_sort', $sortOrder = 'ASC')
+			return new Collection($sql, array('Job' => 'id'));
+		}
+		
+		public function getTakenJobs()
+		{
+			$sql = "
+				SELECT id
+				FROM jobs
+				WHERE user_id = ". db()->escape($this->id) ."
+					AND status = 'taken'
+				ORDER BY user_sort ASC
+			";
+
+			return new Collection($sql, array('Job' => 'id'));
+		}
+		
+		public function getPassedJobs()
+		{
+			$sql = "
+			  SELECT j.id
+				FROM jobs j
+				INNER JOIN meta_jobs mj
+				  ON mj.id = j.printjob_id
+				WHERE j.user_id = ". db()->escape($this->id) ."
+					AND mj.status = 'pass'
+				ORDER BY mj.qa_date DESC
+      ";
+
+			return new Collection($sql, array('Job' => 'id'));
+		}
+		
+		public function getFailedJobs()
 		{
 			if ($status !== null)
-				$statusSQL = " AND status = '{$status}'";
+				$statusSQL = " ";
 			
 			$sql = "
 				SELECT id
 				FROM jobs
 				WHERE user_id = ". db()->escape($this->id) ."
-					{$statusSQL}
-				ORDER BY {$sortField} {$sortOrder}
+					AND status = 'failure'
+				ORDER BY user_sort ASC
 			";
 
 			return new Collection($sql, array('Job' => 'id'));

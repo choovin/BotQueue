@@ -573,27 +573,17 @@
 	    $this->setArg('jobs');
 	  }
 
+    //this view is now obsolete - redirect to new metajob view.
 	  public function job_view()
 	  {
-	    $this->set('area', 'jobs');
-	    
 	    try
 	    {
 	      //load the data and check for errors.
         $job = new SliceJob($this->args('id'));
         if (!$job->isHydrated())
           throw new Exception("That slice job does not exist.");
-        if ($job->get('user_id') != User::$me->id)
-          throw new Exception("You do not have access to view this slice job.");
-        
-        //save our engine
-        $this->set('job', $job);
-        $this->set('inputfile', $job->getInputFile());
-        $this->set('outputfile', $job->getOutputFile());
-        $this->set('config', $job->getSliceConfig());
-        $this->set('engine', $this->get('config')->getEngine());
-        
-        $this->setTitle("Slice Job - " . $job->getLink());
+        else
+          $this->forwardToUrl($job->getUrl());
       }
       catch (Exception $e)
       {
@@ -602,33 +592,10 @@
       }
 	  }
 
+    //this view is now obsolete - redirect to new metajob view.
 	  public function job_update()
 	  {
-	    $this->set('area', 'jobs');
-	    
-	    try
-	    {
-	      //load the data and check for errors.
-        $job = new SliceJob($this->args('id'));
-        if (!$job->isHydrated())
-          throw new Exception("That slice job does not exist.");
-        if ($job->get('user_id') != User::$me->id)
-          throw new Exception("You do not have access to view this slice job.");
-        if ($job->get('status') != 'pending')
-          throw new Exception("This slice job is not in a pending state.");
-          
-        if ($this->args('pass'))
-          $job->pass();
-        if ($this->args('fail'))
-          $job->fail();
-          
-        $this->forwardToUrl($job->getUrl());
-      }
-      catch (Exception $e)
-      {
-        $this->setTitle("Slice Job - Error");
-        $this->set('megaerror', $e->getMessage());
-      }
+	    $this->job_view();
 	  }
 	}
 ?>

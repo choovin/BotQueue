@@ -328,10 +328,18 @@
 			
 			$data = array();
 			
-			if ($this->args('status'))
-				$col = $queue->getJobs($this->args('status'));
+			if ($this->args('status') == 'available')
+				$col = $queue->getAvailableJobs();
+			else if ($this->args('status') == 'taken')
+				$col = $queue->getTakenJobs();
+			else if ($this->args('status') == 'qa')
+				$col = $queue->getQAJobs();
+			else if ($this->args('status') == 'passed')
+				$col = $queue->getPassedJobs();
+			else if ($this->args('status') == 'failed')
+				$col = $queue->getFailedJobs();
 			else
-				$col = $queue->getJobs();
+				$col = $queue->getAllJobs();
 			
 			$jobs = $col->getRange(0, 50);
 			if (!empty($jobs))

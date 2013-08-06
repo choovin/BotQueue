@@ -16,29 +16,17 @@
     along with BotQueue.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-	class SliceJob extends Model
+	class SliceJob extends SubJob
 	{
 		public function __construct($id = null)
 		{
 			parent::__construct($id, "slice_jobs");
 		}
 		
-		public function getName()
-		{
-			return "#" . str_pad($this->id, 6, "0", STR_PAD_LEFT);
-		}
-		
-		public function getUrl()
-		{
-		  return "/metajob:" . $this->get('metajob_id');
-		}
-
 		public function getAPIData()
 		{
-			$r = array();
-			$r['id'] = $this->id;
-			$r['metajob_id'] = $this->get('metajob_id');
-			$r['name'] = $this->getName();
+			$r = parent::getAPIData();
+			
 			$r['is_expired'] = $this->get('is_expired');
       $r['input_file'] = $this->getInputFile()->getAPIData();
       $r['output_file'] = $this->getOutputFile()->getAPIData();
@@ -68,31 +56,33 @@
 		  return $this->getSliceConfig()->getEngine();
 		}
 
-		public function delete()
-		{
-		  //todo: delete our files?
-		  			
-			parent::delete();
-		}
-
-    //TODO: fix this to include a join on metajobs for status.
 		public static function byConfigAndSource($config_id, $source_id)
 		{
 		  $config_id = (int)$config_id;
 		  $source_id = (int)$source_id;
 		  
 		  $sql = "
-		    SELECT id
-		    FROM slice_jobs
-		    WHERE slice_config_id = ".db()->escape($config_id)."
-		      AND input_id = ".db()->escape($source_id)."
-		      AND user_id = " . User::$me->id . "
-		      AND status = 'complete'
+		    SELECT sj.id
+		    FROM slice_jobs sj
+		    INNER JOIN meta_jobs mj
+		      ON sj.metajob_id = mj.id
+		    WHERE sj.slice_config_id = ".db()->escape($config_id)."
+		      AND sj.input_id = ".db()->escape($source_id)."
+		      AND mj.status = 'pass'
+		      AND sj.is_expired = 0
 		  ";
 		  
 		  $id = db()->getValue($sql);
 		  
 		  return new SliceJob($id);
+		}
+		
+		public function getStatusHTML()
+		{
+		  if ($this->get('is_expired'))
+		    return parent::getStatusHTML('expired');
+		  else
+		    return parent::getStatusHTML();
 		}
 	}
 ?>

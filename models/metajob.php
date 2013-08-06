@@ -25,7 +25,7 @@
 		
 		public function getName()
 		{
-			return "#" . str_pad($this->id, 6, "0", STR_PAD_LEFT);
+			return "#" . str_pad($this->id, 4, "0", STR_PAD_LEFT) . '.' . str_pad($this->get('subjob_id'), 4, "0", STR_PAD_LEFT);
 		}
 		
 		public function getUrl()
@@ -77,14 +77,17 @@
 
 		public function delete()
 		{
-		  //todo: delete our subjobs?
+		  $this->getSubJob()->delete();
 		  			
 			parent::delete();
 		}
 
-		public function getStatusHTML()
+		public function getStatusHTML($status = null)
 		{
-			return "<span class=\"label " . self::getStatusHTMLClass($this->get('status')) . "\">" . $this->get('status') . "</span>";
+		  if ($status === null)
+		    $status = $this->get('status');
+		    
+		  return "<span class=\"label " . self::getStatusHTMLClass($status) . "\">" . $status. "</span>";
 		}
 		
 		public static function getStatusHTMLClass($status)
@@ -95,7 +98,8 @@
 				'qa' => 'label-warning',
 				'pass' => 'label-success',
 				'fail' => 'label-important',
-				'canceled' => 'label-inverse'
+				'canceled' => 'label-inverse',
+				'expired' => 'label-inverse'
 			);
 			
 			return $s2c[$status];

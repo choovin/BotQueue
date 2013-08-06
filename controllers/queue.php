@@ -94,23 +94,23 @@
 				$this->setTitle("View Queue - " . $q->getName());
 				$this->set('queue', $q);
 
-				$available = $q->getJobs('available', 'user_sort', 'ASC');
+				$available = $q->getAvailableJobs();
 				$this->set('available', $available->getRange(0, 20));
 				$this->set('available_count', $available->count());
 			
-				$taken = $q->getJobs('taken', 'user_sort', 'DESC');
+				$taken = $q->getTakenJobs();
 				$this->set('taken', $taken->getRange(0, 20));
 				$this->set('taken_count', $taken->count());
-			
-				$complete = $q->getJobs('complete', 'user_sort', 'DESC');
-				$this->set('complete', $complete->getRange(0, 20));
-				$this->set('complete_count', $complete->count());
 
-				$qa = $q->getJobs('qa', 'finished_time', 'DESC');
+				$qa = $q->getQAJobs();
 				$this->set('qa', $qa->getRange(0, 20));
 				$this->set('qa_count', $qa->count());
 			
-				$failure = $q->getJobs('failure', 'user_sort', 'DESC');
+				$complete = $q->getPassedJobs();
+				$this->set('complete', $complete->getRange(0, 20));
+				$this->set('complete_count', $complete->count());
+
+				$failure = $q->getFailedJobs();
 				$this->set('failure', $failure->getRange(0, 20));
 				$this->set('failure_count', $failure->count());
 			
@@ -196,27 +196,32 @@
 				if ($status == 'available')
 				{
 					$this->setTitle($queue->getName() . "'s Available Jobs");
-					$collection = $queue->getJobs($status);
+					$collection = $queue->getAvailableJobs();
 				}
 				else if ($status == 'taken')
 				{
 					$this->setTitle($queue->getName() . "'s Working Jobs");
-					$collection = $queue->getJobs($status);
+					$collection = $queue->getTakenJobs();
+				}
+				else if ($status == 'qa')
+				{
+					$this->setTitle($queue->getName() . "'s Finished Jobs");
+					$collection = $queue->getQAJobs();
 				}
 				else if ($status == 'complete')
 				{
 					$this->setTitle($queue->getName() . "'s Finished Jobs");
-					$collection = $queue->getJobs($status);
+					$collection = $queue->getPassedJobs();
 				}
 				else if ($status == 'failure')
 				{
 					$this->setTitle($queue->getName() . "'s Failed Jobs");
-					$collection = $queue->getJobs($status);	
+					$collection = $queue->getFailedJobs();	
 				}
 				else if ($status == 'all')
 				{
 					$this->setTitle($queue->getName() . "'s Jobs");
-					$collection = $queue->getJobs(null);
+					$collection = $queue->getAllJobs();
 				}
 				else				
 					throw new Exception("That is not a valid status!");

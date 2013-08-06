@@ -57,21 +57,79 @@
 			return "/queue:" . $this->id;
 		}
 		
-		public function getJobs($status = null, $sortField = 'user_sort', $sortOrder = 'ASC')
+		public function getAvailableJobs()
 		{
-			if ($status !== null)
-				$statusSql = " AND status = '".db()->escape($status)."'";
-				
 			$sql = "
 				SELECT id
 				FROM jobs
-				WHERE queue_id = '".db()->escape($this->id)."'
-					{$statusSql}
-				ORDER BY {$sortField} {$sortOrder}
+				WHERE queue_id = ". db()->escape($this->id) ."
+					AND status = 'available'
+				ORDER BY user_sort ASC
 			";
+
 			return new Collection($sql, array('Job' => 'id'));
 		}
 		
+		public function getTakenJobs()
+		{
+			$sql = "
+				SELECT id
+				FROM jobs
+				WHERE queue_id = ". db()->escape($this->id) ."
+					AND status = 'taken'
+				ORDER BY user_sort ASC
+			";
+
+			return new Collection($sql, array('Job' => 'id'));
+		}
+
+		public function getQAJobs()
+		{
+			$sql = "
+			  SELECT j.id
+				FROM jobs j
+				INNER JOIN meta_jobs mj
+				  ON mj.id = j.printjob_id
+				WHERE j.queue_id = ". db()->escape($this->id) ."
+					AND mj.status = 'qa'
+				ORDER BY mj.finish_date DESC
+      ";
+
+			return new Collection($sql, array('Job' => 'id'));
+		}
+				
+		public function getPassedJobs()
+		{
+			$sql = "
+			  SELECT j.id
+				FROM jobs j
+				INNER JOIN meta_jobs mj
+				  ON mj.id = j.printjob_id
+				WHERE j.queue_id = ". db()->escape($this->id) ."
+					AND mj.status = 'pass'
+				ORDER BY mj.qa_date DESC
+      ";
+
+			return new Collection($sql, array('Job' => 'id'));
+		}
+		
+		public function getFailedJobs()
+		{
+			if ($status !== null)
+				$statusSQL = " ";
+			
+			$sql = "
+				SELECT id
+				FROM jobs
+				WHERE queue_id = ". db()->escape($this->id) ."
+					AND status = 'failure'
+				ORDER BY user_sort ASC
+			";
+
+			return new Collection($sql, array('Job' => 'id'));
+		}
+		
+		//TODO: this needs updating with metajobs now.
 		public function findNewJob($bot, $can_slice = true)
 		{
 			if (!$can_slice)
@@ -88,18 +146,6 @@
 			$job_id = db()->getValue($sql);
 
 			return new Job($job_id);
-		}
-		
-		public function getActiveJobs($sortField = 'user_sort', $sortOrder = 'ASC')
-		{
-			$sql = "
-				SELECT id
-				FROM jobs
-				WHERE queue_id = '".db()->escape($this->id)."'
-					AND status IN ('available', 'taken')
-				ORDER BY {$sortField} {$sortOrder}
-			";
-			return new Collection($sql, array('Job' => 'id'));			
 		}
 		
 		public function getBots()
@@ -198,11 +244,16 @@
 			
 			//pull in our time based stats.
 			$sql = "
-				SELECT sum(unix_timestamp(taken_time) - unix_timestamp(created_time)) as wait, sum(unix_timestamp(finished_time) - unix_timestamp(taken_time)) as runtime, sum(unix_timestamp(finished_time) - unix_timestamp(created_time)) as total
-				FROM jobs
-				WHERE status = 'complete'
-					AND queue_id = ". db()->escape($this->id) ."
-			";
+				SELECT
+    		  (sum(unix_timestamp(taken_date) - unix_timestamp(add_date)) + sum(unix_timestamp(qa_date) - unix_timestamp(finish_date))) as wait, 
+    		  sum(unix_timestamp(finish_date) - unix_timestamp(taken_date)) as runtime,
+    		  sum(unix_timestamp(qa_date) - unix_timestamp(add_date)) as total
+				FROM meta_jobs mj
+				INNER JOIN jobs j
+				  ON mj.id = j.printjob_id
+				WHERE mj.status = 'pass'
+				  AND mj.subjob_type = 'print'
+					AND j.queue_id = ". db()->escape($this->id);
 
 			$stats = db()->getArray($sql);
 			$data['total_waittime'] = (int)$stats[0]['wait'];

@@ -79,22 +79,24 @@
     public function getSliceJobs()
     {
       $sql = "
-        SELECT id
+        SELECT id, metajob_id
         FROM slice_jobs
         WHERE slice_config_id = '". db()->escape($this->id) ."'
         ORDER BY id DESC
       ";
       
-      return new Collection($sql, array('SliceJob' => 'id'));
+      return new Collection($sql, array('SliceJob' => 'id', 'MetaJob' => 'metajob_id'));
     }
     
     public function expireSliceJobs()
     {
       $sql = "
-        UPDATE slice_jobs
-        SET status = 'expired'
-        WHERE status = 'complete'
-          AND slice_config_id = '". db()->escape($this->id) ."'
+        UPDATE slice_jobs sj
+        INNER JOIN meta_jobs mj
+          ON mj.id = sj.metajob_id
+        SET sj.is_expired = 1
+        WHERE mj.status = 'pass'
+          AND sj.slice_config_id = '". db()->escape($this->id) ."'
       ";
       
       db()->execute($sql);
