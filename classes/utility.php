@@ -909,7 +909,7 @@ class Utility
 	{
 		$url = "";
 
-		if (FORCE_SSL) {
+		if (Config::get("force_ssl")) {
 			$url .= "https://";
 		} else {
 			$url .= "http://";

@@ -514,7 +514,7 @@ class Model
 		if ($text === null)
 			$text = $this->getName();
 
-		if (FORCE_SSL)
+		if (Config::get("force_ssl"))
 			$protocol = 'https://';
 		else
 			$protocol = 'http://';
@@ -527,7 +527,7 @@ class Model
 		if ($text === null)
 			$text = $this->getName();
 
-		if (FORCE_SSL)
+		if (Config::get("force_ssl"))
 			$protocol = 'https://';
 		else
 			$protocol = 'http://';
@@ -550,7 +550,7 @@ class Model
 
 	public function getAbsoluteUrl()
 	{
-		if (FORCE_SSL)
+		if (Config::get("force_ssl"))
 			$protocol = 'https://';
 		else
 			$protocol = 'http://';

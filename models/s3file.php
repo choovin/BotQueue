@@ -148,7 +148,7 @@ class S3File extends Model
 
     public function getRealUrl()
     {
-        if (FORCE_SSL)
+        if (Config::get("force_ssl"))
             $protocol = 'https://';
         else
             $protocol = 'http://';
