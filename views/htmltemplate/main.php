@@ -54,7 +54,7 @@
 		<? endforeach ?>
 	<? endif ?>
 
-	<? if (IS_DEV_SITE): ?>
+	<? if (Config::get("dev_site")): ?>
 		<style>
 			/*
 					body
@@ -201,7 +201,7 @@
 				Made by <a href="/about">Zach Hoeken and friends</a> especially for you.<br/>
 				Software licensed under the <a href="http://www.gnu.org/copyleft/gpl.html">GPL v3.0</a>. Code at <a
 					href="https://github.com/Hoektronics/BotQueue">GitHub</a>.<br/>
-				&copy; <?= date("Y") ?> <a href="http://www.hoektronics.com"><?= COMPANY_NAME ?></a>. Powered by <a
+				&copy; <?= date("Y") ?> <a href="http://www.hoektronics.com"><?= Config::get("company_name") ?></a>. Powered by <a
 					href="http://www.botqueue.com">BotQueue</a>.<br/>
 				Page generated in <?= round(microtime(true) - START_TIME, 3) ?> seconds.
 			</div>
