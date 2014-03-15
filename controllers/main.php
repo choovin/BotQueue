@@ -225,14 +225,14 @@ class MainController extends Controller
         if (User::$me->get('thingiverse_token')) {
             $this->setTitle("Thingiverse + BotQueue = :D");
 
-            $api = new ThingiverseAPI(THINGIVERSE_API_CLIENT_ID, THINGIVERSE_API_CLIENT_SECRET, User::$me->get('thingiverse_token'));
+            $api = new ThingiverseAPI(Config::get("thingiverse/client_id"), Config::get("thingiverse/client_secret"), User::$me->get('thingiverse_token'));
 
             $this->set('thing', $api->make_call('/things/82335'));
             $this->set('files', $api->make_call('/things/82335/files'));
             $this->set('my_info', $api->make_call('/users/me'));
         } else {
             $this->setTitle("Link Thingiverse to BotQueue");
-        }
+        }g
     }
 
     function thingiverse_callback()
@@ -240,7 +240,7 @@ class MainController extends Controller
         $this->assertLoggedIn();
 
         if ($this->args('code')) {
-            $api = new ThingiverseAPI(THINGIVERSE_API_CLIENT_ID, THINGIVERSE_API_CLIENT_SECRET);
+            $api = new ThingiverseAPI(Config::get("thingiverse/client_id"), Config::get("thingiverse/client_secret"));
             $token = $api->exchange_token($this->args('code'));
 
             if ($token) {

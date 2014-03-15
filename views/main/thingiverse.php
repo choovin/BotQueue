@@ -13,5 +13,5 @@
     <?=print_r($files)?>
   </pre>
 <? else: ?>
-  Want to get started using BotQueue with Thingiverse?  <a class="btn btn-primary" href="https://www.thingiverse.com/login/oauth/authorize?client_id=<?=THINGIVERSE_API_CLIENT_ID?>">Authorize App</a>
+  Want to get started using BotQueue with Thingiverse?  <a class="btn btn-primary" href="https://www.thingiverse.com/login/oauth/authorize?client_id=<?=Config::get("thingiverse/client_id")?>">Authorize App</a>
 <? endif ?>
