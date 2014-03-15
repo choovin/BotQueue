@@ -114,6 +114,8 @@ class ConfigConverter
 			$result["aws/key"] = $keys["AMAZON_AWS_KEY"];
 		if(isset($keys["AMAZON_AWS_SECRET"]))
 			$result["aws/secret"] = $keys["AMAZON_AWS_SECRET"];
+		if(isset($keys["AMAZON_S3_BUCKET_NAME"]))
+			$result["aws/bucket"] = $keys["AMAZON_S3_BUCKET_NAME"];
 		if(isset($keys["EMAIL_METHOD"]))
 			$result["email/method"] = $keys["EMAIL_METHOD"];
 		if(isset($keys["SES_USE_DKIM"]))

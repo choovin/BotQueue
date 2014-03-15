@@ -121,6 +121,12 @@ class ConfigTest extends BotQueue_Unit_Test {
 		);
 
 		$this->assertEquals(
+			$this->keys["AMAZON_S3_BUCKET_NAME"],
+			Config::get("aws/bucket")
+		);
+
+
+		$this->assertEquals(
 			$this->keys["EMAIL_METHOD"],
 			Config::get("email/method")
 		);

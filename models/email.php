@@ -79,8 +79,8 @@ class Email extends Model
 		require_once('AWSSDKforPHP/services/ses.class.php');
 
 		$ses = new AmazonSES(array(
-			"key" => AMAZON_AWS_KEY,
-			"secret" => AMAZON_AWS_SECRET
+			"key" => Config::get("aws/key"),
+			"secret" => Config::get("aws/secret")
 		));
 
 		if (defined('SES_USE_DKIM'))

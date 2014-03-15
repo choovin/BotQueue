@@ -55,7 +55,7 @@ class UploadController extends Controller
         //create our various encoded/signed stuff.
         $policy_json_cleaned = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $policy_json);
         $policy_encoded = base64_encode($policy_json_cleaned);
-        $signature = hex2b64(hash_hmac('sha1', $policy_encoded, AMAZON_AWS_SECRET));
+        $signature = hex2b64(hash_hmac('sha1', $policy_encoded, Config::get("aws/secret")));
 
         //okay, set our view vars.
         $this->set('redirect', $redirect);
@@ -197,7 +197,7 @@ class UploadController extends Controller
     private function _lookupFileInfo()
     {
         //look up our real info.
-        $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+        $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
         $info = $s3->getObjectInfo($this->args('bucket'), $this->args('key'), true);
 
         if ($info['size'] == 0) {
@@ -262,7 +262,7 @@ class UploadController extends Controller
         $file->save();
 
         //copy to new location in s3.
-        $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+        $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
         $s3->copyObject($this->args('bucket'), $this->args('key'), AMAZON_S3_BUCKET_NAME, $path, S3::ACL_PUBLIC_READ);
 
         //remove the uploaded file.

@@ -1,5 +1,5 @@
 <form class="form-horizontal" action="https://<?=AMAZON_S3_BUCKET_NAME?>.s3.amazonaws.com/" method="post" enctype="multipart/form-data">
-	<input type="hidden" name="AWSAccessKeyId" value="<?=AMAZON_AWS_KEY?>"> 
+	<input type="hidden" name="AWSAccessKeyId" value="<?=Config::get("aws/key")?>">
 	<input type="hidden" name="key" value="uploads/${filename}">
 	<input type="hidden" name="acl" value="<?=$acl?>"> 
 	<input type="hidden" name="success_action_redirect" value="<?=$redirect?>">

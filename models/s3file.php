@@ -30,7 +30,7 @@ class S3File extends Model
     public function delete()
     {
         if ($this->isHydrated()) {
-            $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+            $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
             $s3->deleteObject($this->get('bucket'), $this->get('path'));
         }
 
@@ -42,7 +42,7 @@ class S3File extends Model
         //is it a real file?
         if (file_exists($file)) {
             //do the actual upload.
-            $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+            $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
             $result = $s3->putObjectFile($file, AMAZON_S3_BUCKET_NAME, $path, $acl);
 
             //echo "Uploading {$file} to " . AMAZON_S3_BUCKET_NAME . ":{$path}\n";
@@ -107,7 +107,7 @@ class S3File extends Model
         if ($file === null)
             $file = $this->get('path');
 
-        $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+        $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
         $result = $s3->getObjectInfo($bucket, $file, false);
 
         return $result;
@@ -157,7 +157,7 @@ class S3File extends Model
     }
 
 //		public function getRealDownloadUrl() {
-//		  $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+//		  $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
 //			return $s3->getAuthenticatedDownloadURL($this->get('bucket'), $this->get('path'), 3600);
 //		}
 
@@ -171,7 +171,7 @@ class S3File extends Model
             return false;
 
         //load up S3 for download
-        $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+        $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
         $result = $s3->getObject($this->get('bucket'), $this->get('path'), $path);
 
         //did it work?
@@ -205,7 +205,7 @@ class S3File extends Model
     public function copyToPath($path)
     {
         //load up S3 for download
-        $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+        $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
         $result = $s3->copyObject(
             $this->get('bucket'), $this->get('path'),
             AMAZON_S3_BUCKET_NAME, $path,
@@ -218,7 +218,7 @@ class S3File extends Model
     public function copyToBucket($bucket)
     {
         //load up S3 for download
-        $s3 = new S3(AMAZON_AWS_KEY, AMAZON_AWS_SECRET);
+        $s3 = new S3(Config::get("aws/key"), Config::get("aws/secret"));
         $result = $s3->copyObject($this->get('bucket'), $this->get('path'), $bucket, $this->get('path'), S3::ACL_PUBLIC_READ);
 
         $this->set('bucket', $bucket);
