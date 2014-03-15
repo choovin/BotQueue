@@ -87,7 +87,7 @@ class Email extends Model
 			$ses->set_identity_dkim_enabled($this->From, true);
 
 		//format our from and to emails.
-		$from = '"' . RR_PROJECT_NAME . '" <' . EMAIL_FROM . '>';
+		$from = '"' . Config::get("project_name") . '" <' . EMAIL_FROM . '>';
 		if ($this->get('to_name'))
 			$to = '"' . $this->get('to_name') . '" <' . $this->get('to_email') . '>';
 		else

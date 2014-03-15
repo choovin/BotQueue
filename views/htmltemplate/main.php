@@ -3,9 +3,9 @@
 <head>
 	<meta charset="utf-8">
 	<? if ($title): ?>
-		<title><?= strip_tags($title) ?> - <?= RR_PROJECT_NAME ?></title>
+		<title><?= strip_tags($title) ?> - <?= Config::get("project_name") ?></title>
 	<? else: ?>
-		<title><?= RR_PROJECT_NAME ?>: Internets + Digital Fabrication = Win</title>
+		<title><?= Config::get("project_name") ?>: Internets + Digital Fabrication = Win</title>
 	<? endif ?>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="description" content="">
@@ -49,7 +49,7 @@
 	<? endif ?>
 	<? if (!empty(Controller::$rssFeeds)): ?>
 		<? foreach (Controller::$rssFeeds AS $feed): ?>
-			<link rel="alternate" type="application/rss+xml" title="<?= RR_PROJECT_NAME ?> - <?= $feed['title'] ?>"
+			<link rel="alternate" type="application/rss+xml" title="<?= Config::get("project_name") ?> - <?= $feed['title'] ?>"
 				  href="<?= $feed['url'] ?>"/>
 		<? endforeach ?>
 	<? endif ?>
@@ -84,7 +84,7 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</a>
-					<a class="brand" href="/"><?= RR_PROJECT_NAME ?></a>
+					<a class="brand" href="/"><?= Config::get("project_name") ?></a>
 
 					<div class="nav-collapse">
 						<ul class="nav">

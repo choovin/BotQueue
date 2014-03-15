@@ -7,4 +7,4 @@ Someone requested a password reset on <a href="http://<?=Config::get("hostname")
 If you did not request this password reset, don't worry.  Your password is safe and you can disregard this email.
 <br/><br/>
 Thanks,<br/>
-<?=RR_PROJECT_NAME?> Mailman
+<?=Config::get("project_name")?> Mailman
