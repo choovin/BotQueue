@@ -74,7 +74,7 @@ class Model
 
 	/**
 	 * This function translates the object to a string.
-	 * @return string the string value for the funtction
+	 * @return string the string value for the function
 	 **/
 	public function __toString()
 	{
@@ -88,6 +88,7 @@ class Model
 	 */
 	public function get($name)
 	{
+		print_r($this->data);
 		return $this->data[$name];
 	}
 

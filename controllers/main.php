@@ -232,7 +232,7 @@ class MainController extends Controller
             $this->set('my_info', $api->make_call('/users/me'));
         } else {
             $this->setTitle("Link Thingiverse to BotQueue");
-        }g
+        }
     }
 
     function thingiverse_callback()
