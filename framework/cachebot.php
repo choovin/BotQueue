@@ -193,7 +193,7 @@ abstract class EasyCache
 		self::$hits++;
 
 		//add it to our array
-		if (TRACK_CACHE_HITS)
+		if (Config::get("track/cache"))
 		{
 			self::$keys['keys'][] = $key;
 			self::$keys['type'][] = $type;

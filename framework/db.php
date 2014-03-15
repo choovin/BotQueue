@@ -104,7 +104,7 @@ class DatabaseSocket
 
 	public function insert($sql, $data = array())
 	{
-		if (TRACK_SQL_QUERIES)
+		if (Config::get("track/sql"))
 			self::$inserts[] = array($sql, $data);
 
 		//todo: prepared statements suck!!!
@@ -120,7 +120,7 @@ class DatabaseSocket
 
 	public function execute($sql, $data = array())
 	{
-		if (TRACK_SQL_QUERIES)
+		if (Config::get("track/sql"))
 			self::$executes[] = array($sql, $data);
 
 		//todo: prepared statements suck!!!
@@ -173,7 +173,7 @@ class DatabaseSocket
 
 	public function query($sql)
 	{
-		if (TRACK_SQL_QUERIES)
+		if (Config::get("track/sql"))
 			self::$queries[] = $sql;
 
 		$link = $this->link->query($sql);
