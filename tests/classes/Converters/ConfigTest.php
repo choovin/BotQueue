@@ -36,6 +36,7 @@ class ConfigTest extends BotQueue_Unit_Test {
 		$this->keys["RR_DB_PORT"] = "3306";
 		$this->keys["RR_DB_USER"] = "root";
 		$this->keys["RR_DB_PASS"] = "";
+		$this->keys["RR_DB_NAME"] = "BotQueue";
 		
 		$this->keys["AMAZON_AWS_KEY"] = "";
 		$this->keys["AMAZON_AWS_SECRET"] = "";
@@ -81,7 +82,7 @@ class ConfigTest extends BotQueue_Unit_Test {
 
 		$this->assertEquals(
 			$this->keys["RR_PROJECT_NAME"],
-			Config::get("db/name")
+			Config::get("project_name")
 		);
 
 		$this->assertEquals(
@@ -102,6 +103,11 @@ class ConfigTest extends BotQueue_Unit_Test {
 		$this->assertEquals(
 			$this->keys["RR_DB_PASS"],
 			Config::get("db/pass")
+		);
+
+		$this->assertEquals(
+			$this->keys["RR_DB_NAME"],
+			Config::get("db/name")
 		);
 
 		$this->assertEquals(

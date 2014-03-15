@@ -99,7 +99,9 @@ class ConfigConverter
 		if(isset($keys["SITE_HOSTNAME"]))
 			$result["hostname"] = $keys["SITE_HOSTNAME"];
 		if(isset($keys["RR_PROJECT_NAME"]))
-			$result["db/name"] = $keys["RR_PROJECT_NAME"];
+			$result["project_name"] = $keys["RR_PROJECT_NAME"];
+		if(isset($keys["RR_DB_NAME"]))
+			$result["db/name"] = $keys["RR_DB_NAME"];
 		if(isset($keys["RR_DB_HOST"]))
 			$result["db/host"] = $keys["RR_DB_HOST"];
 		if(isset($keys["RR_DB_PORT"]))
