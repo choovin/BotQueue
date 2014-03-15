@@ -42,9 +42,8 @@ class Database
 		if ($key === null)
 			$key = 'main';
 
-		//RR_DB_USER, RR_DB_PASS, RR_DB_HOST and RR_DB_PORT are global variables in extensions/config.php
 		if (self::$sockets[$key] === null)
-			self::$sockets[$key] = new DatabaseSocket(RR_DB_USER, RR_DB_PASS, RR_DB_HOST, RR_DB_PORT);
+			self::$sockets[$key] = new DatabaseSocket(Config::get("db/user"), Config::get("db/pass"), Config::get("db/host"), Config::get("db/port"));
 
 		return self::$sockets[$key];
 	}
@@ -81,7 +80,7 @@ class DatabaseSocket
 	public function reconnect()
 	{
 		ob_start();
-		$this->link = new mysqli($this->host, $this->user, $this->pass, RR_DB_NAME, $this->port);
+		$this->link = new mysqli($this->host, $this->user, $this->pass, Config::get("db/name"), $this->port);
 		ob_end_clean();
 
 		if ($this->link->connect_errno) {
@@ -89,8 +88,8 @@ class DatabaseSocket
 		}
 
 		//select the right db.
-		if (defined('RR_DB_NAME'))
-			$this->selectDb(RR_DB_NAME);
+		if (defined('Config::get("db/name")'))
+			$this->selectDb(Config::get("db/name"));
 	}
 
 	public function error()
