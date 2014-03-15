@@ -38,6 +38,7 @@ class Config
 	 */
 	public static function get($key)
 	{
+		print_r(self::$data);
 		if (isset(self::$data[$key]))
 			return self::$data[$key];
 		throw new Exception("Invalid Configuration key");
@@ -54,6 +55,21 @@ class Config
 		self::$data[$key] = $val;
 	}
 
+	public static function load($ini_file)
+	{
+		$ini_data = parse_ini_file($ini_file, true);
+		self::$data = array();
+
+		foreach ($ini_data as $key => $val) {
+			if (is_array($val)) {
+				foreach ($val as $sub_key => $value) {
+					self::$data[$key."/".$sub_key] = $value;
+				}
+			} else {
+				self::$data[$key] = $val;
+			}
+		}
+	}
 
 	public static function save($ini_file)
 	{
@@ -83,7 +99,7 @@ class Config
 		$first_entry = true;
 		foreach ($array as $key => $val) {
 			if (is_array($val)) {
-				if(!$first_entry)
+				if (!$first_entry)
 					$res[] = "";
 				$res[] = "[$key]";
 
@@ -98,13 +114,14 @@ class Config
 		self::safeFileWrite($file, implode("\r\n", $res));
 	}
 
-	private static function getKeyValue($key, $value) {
+	private static function getKeyValue($key, $value)
+	{
 		$result = "$key = ";
-		if($value === false)
+		if ($value === false)
 			$result .= 'false';
-		else if($value === true)
+		else if ($value === true)
 			$result .= 'true';
-		else if(is_numeric($value))
+		else if (is_numeric($value))
 			$result .= $value;
 		else
 			$result .= '"' . $value . '"';

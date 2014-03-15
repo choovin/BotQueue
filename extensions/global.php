@@ -46,7 +46,7 @@ if (file_exists($php_config_file)) {
 }
 
 if (file_exists($ini_config_file)) {
-	//$config = Config::load($ini_config_file);
+	Config::load($ini_config_file);
 } else {
 	// Umm. Site setup mode?
 	// It should be in setup mode for tests, though.
