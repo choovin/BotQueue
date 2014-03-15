@@ -519,7 +519,7 @@ class Model
 		else
 			$protocol = 'http://';
 
-		return '<a href="' . $protocol . SITE_HOSTNAME . $this->getiPhoneUrl() . '">' . $text . '</a>';
+		return '<a href="' . $protocol . Config::get("hostname") . $this->getiPhoneUrl() . '">' . $text . '</a>';
 	}
 
 	public function getLink($text = null)
@@ -532,7 +532,7 @@ class Model
 		else
 			$protocol = 'http://';
 
-		return '<a href="' . $protocol . SITE_HOSTNAME . $this->getUrl() . '">' . $text . '</a>';
+		return '<a href="' . $protocol . Config::get("hostname") . $this->getUrl() . '">' . $text . '</a>';
 	}
 
 	public function getUrl()
@@ -555,7 +555,7 @@ class Model
 		else
 			$protocol = 'http://';
 
-		return $protocol . SITE_HOSTNAME . $this->getUrl();
+		return $protocol . Config::get("hostname") . $this->getUrl();
 	}
 
 	public function copy()

@@ -1,6 +1,6 @@
 Dear <?=$user->getName() ?>,
 
-Someone requested a password reset on <?=SITE_HOSTNAME?>.  In order to verify and complete with this password reset operation, please follow the link below:
+Someone requested a password reset on <?=Config::get("hostname")?>.  In order to verify and complete with this password reset operation, please follow the link below:
 
 <?=$link?>
 

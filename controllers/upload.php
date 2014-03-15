@@ -33,7 +33,7 @@ class UploadController extends Controller
         $this->setArg('label');
 
         //where you want me go?
-        $redirect = "http://" . SITE_HOSTNAME . "/upload/success/$payload";
+        $redirect = "http://" . Config::get("hostname") . "/upload/success/$payload";
         $acl = "public-read";
         $expiration = gmdate("Y-m-d\TH:i:s\Z", strtotime("+1 day"));
 

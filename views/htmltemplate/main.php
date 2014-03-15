@@ -33,7 +33,7 @@
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
 			_gaq.push(['_setAccount', '<?=GOOGLE_ANALYTICS_TRACKING_CODE?>']);
-			_gaq.push(['_setDomainName', "<?=SITE_HOSTNAME?>"]);
+			_gaq.push(['_setDomainName', "<?=Config::get("hostname")?>"]);
 			_gaq.push(['_setAllowLinker', true]);
 			_gaq.push(['_trackPageview']);
 

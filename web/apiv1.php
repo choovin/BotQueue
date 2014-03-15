@@ -22,8 +22,8 @@
 	//include(EXTENSIONS_DIR . "session.php");
 
 	//are we in the right place?
-	if ($_SERVER['HTTP_HOST'] != SITE_HOSTNAME)
-		header("Location: http://" . SITE_HOSTNAME . $_SERVER['REQUEST_URI']);
+	if ($_SERVER['HTTP_HOST'] != Config::get("hostname"))
+		header("Location: http://" . Config::get("hostname") . $_SERVER['REQUEST_URI']);
 		
 	// If page requires SSL, and we're not in SSL mode, 
 	// redirect to the SSL version of the page

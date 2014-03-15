@@ -43,7 +43,7 @@ class Token extends Model
         $encoded = $this->getEncodedString();
 
         //one year is just long enough to forget your password.
-        setcookie('token', $encoded, time() + 60 * 60 * 24 * 365, "/", SITE_HOSTNAME);
+        setcookie('token', $encoded, time() + 60 * 60 * 24 * 365, "/", Config::get("hostname"));
     }
 
     public function getEncodedString()

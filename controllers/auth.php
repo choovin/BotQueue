@@ -32,7 +32,7 @@ class AuthController extends Controller
             }
 
             //unset specific variables.
-            setcookie('token', '', time() - 420000, '/', SITE_HOSTNAME);
+            setcookie('token', '', time() - 420000, '/', Config::get("hostname"));
             unset($_SESSION['userid']);
 
             //nuke the session.
@@ -57,7 +57,7 @@ class AuthController extends Controller
                 $user->set('pass_reset_hash', sha1(mt_rand() . mt_rand() . mt_rand()));
                 $user->save();
 
-                $link = "http://" . SITE_HOSTNAME . $user->getUrl() . "/resetpass:" . $user->get('pass_reset_hash');
+                $link = "http://" . Config::get("hostname") . $user->getUrl() . "/resetpass:" . $user->get('pass_reset_hash');
                 $text = Controller::byName('email')->renderView('lost_pass', array('user' => $user, 'link' => $link));
                 $html = Controller::byName('email')->renderView('lost_pass_html', array('user' => $user, 'link' => $link));
 

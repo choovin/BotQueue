@@ -915,7 +915,7 @@ class Utility
 			$url .= "http://";
 		}
 
-		$url .= SITE_HOSTNAME;
+		$url .= Config::get("hostname");
 
 		return $url;
 	}
