@@ -88,7 +88,6 @@ class Model
 	 */
 	public function get($name)
 	{
-		print_r($this->data);
 		return $this->data[$name];
 	}
 

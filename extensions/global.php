@@ -38,6 +38,7 @@ if (file_exists($php_config_file)) {
 			unlink($php_config_file);
 		 */
 	} catch(FilePermissionException $e) {
+		print("Couldn't convert the configuration");
 		// Send a notification to the admin?
 	}
 
