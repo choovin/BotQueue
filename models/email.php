@@ -57,9 +57,9 @@ class Email extends Model
 
 	public function send()
 	{
-		if (EMAIL_METHOD == 'SMTP')
+		if (Config::get("email/method") == 'SMTP')
 			$result = $this->smtpSend();
-		elseif (EMAIL_METHOD == 'SES')
+		elseif (Config::get("email/method") == 'SES')
 			$result = $this->sesSend();
 		else
 			throw new Exception("Invalid email method");
@@ -83,8 +83,10 @@ class Email extends Model
 			"secret" => Config::get("aws/secret")
 		));
 
-		if (defined('SES_USE_DKIM'))
-			$ses->set_identity_dkim_enabled($this->From, true);
+		try {
+			if (Config::get("email/ses_skim"))
+				$ses->set_identity_dkim_enabled($this->From, true);
+		} catch(InvalidConfigDefine $e) {}
 
 		//format our from and to emails.
 		$from = '"' . Config::get("project_name") . '" <' . EMAIL_FROM . '>';
@@ -120,7 +122,7 @@ class Email extends Model
 	  $message->attach(new Swift_Message_Part($this->get('text_body'), "text/plain"));
 
 	  // Set the from address/name.
-	  $from =& new Swift_Address(EMAIL_FROM, EMAIL_NAME);
+	  $from =& new Swift_Address(EMAIL_FROM, Config::get("email/name"));
 
 	  // Create the recipient list.
 	  $recipients =& new Swift_RecipientList();
@@ -131,7 +133,7 @@ class Email extends Model
 			//connect and create mailer
 			$smtp =& new Swift_Connection_SMTP("smtp.gmail.com", Swift_Connection_SMTP::PORT_SECURE, Swift_Connection_SMTP::ENC_TLS);
 	  $smtp->setUsername(EMAIL_FROM);
-	  $smtp->setPassword(EMAIL_PASSWORD);
+	  $smtp->setPassword(Config::get("email/pass"));
 
 			$mailer = new Swift($smtp);
 
