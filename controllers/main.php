@@ -142,13 +142,6 @@ class MainController extends Controller
 		$this->setArg('hide');
 	}
 
-	public function shortcode()
-	{
-		$code = ShortCode::byCode($this->args('code'));
-
-		die($code->get('url'));
-	}
-
 	public function tos()
 	{
 		$this->setTitle("Terms of Service");
