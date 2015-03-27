@@ -14,7 +14,7 @@ branches:
     - cakephp
 
 before_install:
-  - mysql -e 'create database
+  - mysql -e 'create database botqueue'
   - sudo apt-get update > /dev/null
 
 install:
