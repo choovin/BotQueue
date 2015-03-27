@@ -168,7 +168,6 @@ Request::addDetector('tablet', function ($request) {
  * Inflector::rules('uninflected', ['dontinflectme']);
  * Inflector::rules('transliteration', ['/å/' => 'aa']);
  */
-Inflector::rules('uninflected', ['EngineOs', 'engine_os']);
 
 /**
  * Plugins need to be loaded manually, you can either load them one by one or all of them in a single call
