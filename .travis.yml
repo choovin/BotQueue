@@ -23,7 +23,7 @@ install:
 
   # Install composer
   - composer self-update
-  - yes | composer install
+  - composer install --no-interaction
   
 before_script:
   - cp config/app.travis.php config/app.php

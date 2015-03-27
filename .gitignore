@@ -10,5 +10,3 @@ ssl-cert.key
 vendor/*
 composer.phar
 config/app.php
-tmp/*
-logs/*
