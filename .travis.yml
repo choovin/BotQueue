@@ -11,8 +11,10 @@ notifications:
 branches:
   only:
     - master
+    - cakephp
 
 before_install:
+  - mysql -e 'create database
   - sudo apt-get update > /dev/null
 
 install:
@@ -21,10 +23,10 @@ install:
 
   # Install composer
   - composer self-update
-  - composer install
+  - yes | composer install
   
 before_script:
-  - cp extensions/config-travis.php extensions/config.php
+  - cp config/app.travis.php config/app.php
 
 script:
-  - phpunit --bootstrap extensions/global.php tests
+  - vendor/bin/phpunit
