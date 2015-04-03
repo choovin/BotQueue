@@ -21,13 +21,11 @@ class UsersController extends AppController
                 $this->Auth->setUser($user);
 
                 // todo See if this is actually a cakephp bug or not
-                /*
                 if ($this->Auth->authenticationProvider()->needsPasswordRehash()) {
                     $user = $this->Users->get($this->Auth->user('id'));
                     $user->password = $this->request->data('password');
                     $this->Users->save($user);
                 }
-                */
                 return $this->redirect($this->Auth->redirectUrl());
             } else {
                 $this->Flash->error(

@@ -37,13 +37,14 @@ class AppController extends Controller
      */
     public function initialize()
     {
+        parent::initialize();
         $this->loadComponent('Flash');
         $this->loadComponent('Auth', [
             'authenticate' => [
                 'Form' => [
                     'passwordHasher' => [
                         'className' => 'Fallback',
-                        'hashers' => ['Legacy', 'Default']
+                        'hashers' => ['Default', 'Legacy']
                     ]
                 ]
             ]
