@@ -64,6 +64,14 @@ use Cake\Utility\Security;
 try {
     Configure::config('default', new PhpConfig());
     Configure::load('app', 'default', false);
+
+    // todo either remove this and include it as part of the upgrade process
+    // or include it and convert it to 'configure' prompts.
+	// Load up previous extensions config variables as their actual name
+	$previous_config = ROOT . DS . 'extensions' . DS . 'config.php';;
+	if(file_exists($previous_config)) {
+		include $previous_config;
+	}
 } catch (\Exception $e) {
     die($e->getMessage() . "\n");
 }
