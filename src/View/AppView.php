@@ -20,7 +20,6 @@ use Cake\View\View;
  */
 class AppView extends View
 {
-
     /**
      * Initialization hook method.
      *
@@ -35,14 +34,17 @@ class AppView extends View
         $this->Html->css("/bootstrap/2.3.0/css/bootstrap-responsive.min.css", ['block' => true]);
         $this->Html->css("/css/botqueue.css", ['block' => true]);
 
-        $this->Html->script("/js/jquery-1.11.0.min.js");
-        $this->Html->script("/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js");
-        $this->Html->script("/js/jquery.imagesloaded.min.js");
-        $this->Html->script("/js/flot-0.7/jquery.flot.js");
-        $this->Html->script("/js/flot-0.7/jquery.flot.selection.js");
-        $this->Html->script("/js/jquery.flot.tooltip.min.js");
+        $this->Html->script("/bootstrap/2.3.0/js/bootstrap.js", ['block' => true]);
+        $this->Html->script("/js/botqueue.js", ['block' => true]);
 
-        $this->Html->script("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore.js");
-        $this->Html->script("https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js");
+        $this->Html->script("/js/jquery-1.11.0.min.js", ['block' => true]);
+        $this->Html->script("/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js", ['block' => true]);
+        $this->Html->script("/js/jquery.imagesloaded.min.js", ['block' => true]);
+        $this->Html->script("/js/flot-0.7/jquery.flot.js", ['block' => true]);
+        $this->Html->script("/js/flot-0.7/jquery.flot.selection.js", ['block' => true]);
+        $this->Html->script("/js/jquery.flot.tooltip.min.js", ['block' => true]);
+
+        $this->Html->script("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore.js", ['block' => true]);
+        $this->Html->script("https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js", ['block' => true]);
     }
 }

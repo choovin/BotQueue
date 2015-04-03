@@ -20,10 +20,11 @@ class MenubarCell extends Cell
     /**
      * Default display method.
      *
-     * @return void
+     * @param \App\Model\Entity\User $user
      */
-    public function display()
+    public function display($user)
     {
 	    $this->set('area', '');
+        $this->set('user', $user);
     }
 }

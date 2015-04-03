@@ -1,5 +1,6 @@
 <?
 /**
+ * @var \App\Model\Entity\User $user
  * todo Add the github fork banner if the user isn't logged in
  * todo Add the notification count
  * todo Add the logged in user stuff
@@ -50,10 +51,10 @@
 					</ul>
 					<ul class="nav pull-right">
 						<li class="divider-vertical"></li>
-						<? /** if (User::isLoggedIn()): ?>
+						<? if ($user): ?>
 							<li class="dropdown">
 								<a href="#" class="dropdown-toggle"
-								   data-toggle="dropdown">Hello, <?= User::$me->getName() ?>
+								   data-toggle="dropdown">Hello, <?= h($user['username']) ?>
 									<b class="caret"></b>
 								</a>
 								<ul class="dropdown-menu">
@@ -62,14 +63,14 @@
 									<li><a href="/logout">Log Out</a></li>
 								</ul>
 							</li>
-						<? else: */ ?>
+						<? else: ?>
 							<li>
 								<a href="/login"
 								   style="padding-left: 17px; background: transparent url('/img/lock_icon.png') no-repeat 0px center;">Log
 									in</a>
 							</li>
 							<li><a href="/register">Sign up</a></li>
-						<? /* endif */ ?>
+						<? endif ?>
 					</ul>
 				</div>
 			</div>

@@ -1,7 +1,7 @@
 <?
 /**
  * @var \App\View\AppView $this
- * todo css
+ * @var \App\Model\Entity\User $user
  */
 ?>
 <!DOCTYPE html>
@@ -20,8 +20,7 @@
 <body class="preview" data-spy="scroll" data-target=".subnav" data-offset="50">
 <div class="container">
 
-
-	<?= $this->cell('Menubar') ?>
+	<?= $this->cell('Menubar', ['user' => $user]) ?>
 
 	<section id="content" style="margin-top:60px">
 		<? if ($this->fetch('title')): ?>
